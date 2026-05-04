@@ -1,0 +1,7 @@
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS bio TEXT,
+  ADD COLUMN IF NOT EXISTS website TEXT,
+  ADD COLUMN IF NOT EXISTS instagram_handle TEXT;
+
+ALTER TABLE public.published_projects
+  ADD COLUMN IF NOT EXISTS is_featured_home BOOLEAN NOT NULL DEFAULT FALSE;

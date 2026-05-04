@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+:root {
+  --background-light: #f5efe6;
+  --background-dark: #1a1b17;
+  --charcoal: #1c1c1c;
+  --primary: #6e7958;
+  --muted: #7a7a74;
+  --surface: #fffdfa;
+  /* shadcn-compatible semantic tokens (used by /components/ui) */
+  --background: var(--surface);
+  --foreground: var(--charcoal);
+  --card: var(--surface);
+  --card-foreground: var(--charcoal);
+  --popover: var(--surface);
+  --popover-foreground: var(--charcoal);
+  --primary-foreground: #faf9f6;
+  --secondary: var(--background-light);
+  --secondary-foreground: #2a2a26;
+  --muted-foreground: var(--muted);
+  --accent: #f0ebe3;
+  --accent-foreground: var(--charcoal);
+  --destructive: #b42318;
+  --destructive-foreground: #fffdfa;
+  --border: color-mix(in srgb, var(--charcoal) 14%, transparent);
+  --input: color-mix(in srgb, var(--charcoal) 10%, transparent);
+  --ring: color-mix(in srgb, var(--primary) 50%, transparent);
+}
+
+@theme inline {
+  --color-background-light: var(--background-light);
+  --color-background-dark: var(--background-dark);
+  --color-charcoal: var(--charcoal);
+  --color-primary: var(--primary);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-display: var(--font-inter);
+  --font-serif: var(--font-playfair);
+}
+
+body {
+  background: var(--background-light);
+  color: var(--charcoal);
+  font-family: var(--font-inter), sans-serif;
+}
+
+a {
+  @apply transition-colors duration-200;
+}
+
+.container-premium {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}

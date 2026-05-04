@@ -1,0 +1,104 @@
+import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
+import { InstagramIcon, LinkedInIcon, XIcon, YouTubeIcon } from "@/components/social-brand-icons";
+import { EDITORIAL_EMAIL, SUPPORT_EMAIL } from "@/lib/site-contact";
+
+export function SiteFooter() {
+  return (
+    <footer className="border-t border-primary/15 bg-surface">
+      <div className="container-premium grid gap-8 py-12 md:grid-cols-3">
+        <div>
+          <BrandMark logoClassName="min-h-[4.5rem] md:min-h-[5.1rem]" textClassName="text-charcoal" />
+          <p className="mt-2 max-w-sm text-xs leading-relaxed text-muted">
+            Premium architecture, design, culture, and editorial intelligence.
+          </p>
+          <p className="mt-3 text-xs text-muted">
+            Newsletter & editorial:{" "}
+            <a href={`mailto:${EDITORIAL_EMAIL}`} className="text-primary hover:underline">
+              {EDITORIAL_EMAIL}
+            </a>
+            <br />
+            Support:{" "}
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary hover:underline">
+              {SUPPORT_EMAIL}
+            </a>
+          </p>
+        </div>
+        <nav className="flex flex-wrap gap-x-6 gap-y-2 text-xs uppercase tracking-[0.14em] text-charcoal/70">
+          <Link href="/privacy" className="hover:text-primary">
+            Privacy
+          </Link>
+          <Link href="/cookies" className="hover:text-primary">
+            Cookies
+          </Link>
+          <Link href="/terms" className="hover:text-primary">
+            Terms
+          </Link>
+          <Link href="/architecture-news" className="hover:text-primary">
+            Architecture News
+          </Link>
+          <Link href="/newsletter" className="hover:text-primary">
+            Newsletter
+          </Link>
+          <Link href="/archive" className="hover:text-primary">
+            Archive
+          </Link>
+          <Link href="/awards" className="hover:text-primary">
+            Awards
+          </Link>
+        </nav>
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.14em] text-primary">Social</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/20 bg-white/90 text-charcoal transition hover:border-primary hover:shadow-sm"
+            >
+              <InstagramIcon />
+            </a>
+            <a
+              href="https://linkedin.com"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="LinkedIn"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/20 bg-white/90 transition hover:border-primary hover:shadow-sm"
+            >
+              <LinkedInIcon />
+            </a>
+            <a
+              href="https://youtube.com"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="YouTube"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/20 bg-white/90 transition hover:border-primary hover:shadow-sm"
+            >
+              <YouTubeIcon />
+            </a>
+            <a
+              href="https://x.com"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="X"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/20 bg-white/90 text-charcoal transition hover:border-primary hover:shadow-sm"
+            >
+              <XIcon />
+            </a>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-primary/10 py-4 text-center text-[11px] text-muted">
+        <div className="container-premium flex flex-wrap items-center justify-center gap-3">
+          <span>
+            © {new Date().getFullYear()} the9thedition. All rights reserved. Editorial content and trademarks are protected.
+          </span>
+          <Link href="/login" className="font-semibold uppercase tracking-[0.12em] text-primary hover:underline">
+            Admin Login
+          </Link>
+        </div>
+      </div>
+    </footer>
+  );
+}
