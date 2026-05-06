@@ -85,7 +85,7 @@ export default function AdminLeadsPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search project, name, or email"
-            className="min-w-[240px] rounded-md border border-primary/20 bg-white px-3 py-2 text-sm"
+            className="w-full min-w-0 rounded-md border border-primary/20 bg-white px-3 py-2 text-sm sm:w-auto sm:min-w-[240px]"
           />
           <select
             value={statusFilter}
@@ -133,7 +133,7 @@ export default function AdminLeadsPage() {
         </div>
 
         <div className="mt-6 hidden overflow-x-auto rounded-xl border border-primary/15 bg-surface md:block">
-          <table className="min-w-full text-sm">
+          <table className="min-w-[980px] text-sm lg:min-w-full">
             <thead className="border-b border-primary/10 text-left text-xs uppercase tracking-[0.14em] text-muted">
               <tr>
                 <th className="px-4 py-3">Project</th>
@@ -166,7 +166,7 @@ export default function AdminLeadsPage() {
                       <p className="mt-1 text-xs text-muted">—</p>
                     )}
                   </td>
-                  <td className="max-w-[320px] px-4 py-3 text-charcoal/85">{lead.message}</td>
+                  <td className="max-w-[320px] break-words px-4 py-3 text-charcoal/85">{lead.message}</td>
                   <td className="px-4 py-3">
                     <select
                       className="rounded-md border border-primary/20 bg-white px-2 py-1"
@@ -183,7 +183,7 @@ export default function AdminLeadsPage() {
                     <textarea
                       defaultValue={lead.internal_notes ?? ""}
                       placeholder="Private notes"
-                      className="min-h-[90px] w-[260px] rounded-md border border-primary/20 bg-white px-3 py-2 text-sm"
+                      className="min-h-[90px] w-full min-w-[180px] max-w-[260px] rounded-md border border-primary/20 bg-white px-3 py-2 text-sm"
                       onBlur={(e) => void updateLead(lead.id, { internalNotes: e.target.value })}
                     />
                   </td>

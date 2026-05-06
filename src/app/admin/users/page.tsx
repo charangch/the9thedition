@@ -119,11 +119,11 @@ export default function AdminUsersPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name or user ID"
-            className="min-w-[260px] rounded-md border border-primary/20 bg-white px-3 py-2 text-sm"
+            className="w-full min-w-0 rounded-md border border-primary/20 bg-white px-3 py-2 text-sm sm:w-auto sm:min-w-[260px]"
           />
         </div>
         <div className="mt-6 overflow-x-auto rounded-xl border border-primary/15 bg-surface">
-          <table className="min-w-full text-sm">
+          <table className="min-w-[780px] text-sm lg:min-w-full">
             <thead className="border-b border-primary/10 text-left text-xs uppercase tracking-[0.14em] text-muted">
               <tr>
                 <th className="px-4 py-3">Display name</th>
@@ -135,7 +135,7 @@ export default function AdminUsersPage() {
               {filtered.map((row) => (
                 <tr key={row.user_id} className="border-b border-primary/10 last:border-0">
                   <td className="px-4 py-3">{row.display_name ?? "Unnamed user"}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-charcoal/70">{row.user_id}</td>
+                  <td className="max-w-[320px] break-all px-4 py-3 font-mono text-xs text-charcoal/70">{row.user_id}</td>
                   <td className="px-4 py-3">
                     <button
                       type="button"

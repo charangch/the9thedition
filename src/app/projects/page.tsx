@@ -39,14 +39,14 @@ export default async function ProjectsPage() {
       <SiteHeader />
       <main className="container-premium pb-16 pt-10">
         <div className="max-w-3xl">
-          <h1 className="font-serif text-4xl md:text-5xl">Projects</h1>
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl">Projects</h1>
           <p className="mt-4 text-muted">
             Every project featured on the homepage lives here too — the same editorial catalog, with
             architect credits and full detail pages.
           </p>
         </div>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {rows.map((project) => (
             <article
               key={project.slug}
@@ -68,7 +68,7 @@ export default async function ProjectsPage() {
                     {project.category}
                     {project.location ? ` • ${project.location}` : ""}
                   </p>
-                  <h2 className="mt-1 font-serif text-xl leading-snug group-hover:text-primary">
+                  <h2 className="mt-1 break-words font-serif text-xl leading-snug group-hover:text-primary">
                     {project.title}
                   </h2>
                   {project.meta ? (

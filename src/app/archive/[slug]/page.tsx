@@ -100,7 +100,7 @@ export default async function ArchiveProjectDetailPage({ params }: { params: Pro
             <span className="mx-2">/</span>
             <span className="text-charcoal/80">{item.category}</span>
           </nav>
-          <h1 className="archive-lede mt-4 max-w-4xl font-serif text-4xl leading-tight md:text-5xl">{item.title}</h1>
+          <h1 className="archive-lede mt-4 max-w-4xl font-serif text-3xl leading-tight sm:text-4xl md:text-5xl">{item.title}</h1>
           <div className="mt-3 flex flex-wrap gap-3 text-sm text-muted">
             <span className="uppercase tracking-[0.12em] text-primary">{item.category}</span>
             {item.location ? <span>{item.location}</span> : null}

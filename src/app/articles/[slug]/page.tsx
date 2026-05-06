@@ -212,7 +212,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
         <SiteHeader />
         <article className="container-premium py-14">
           <p className="text-[11px] uppercase tracking-[0.14em] text-primary">{published.category ?? "Article"}</p>
-          <h1 className="mt-3 font-serif text-5xl text-charcoal">{published.title}</h1>
+          <h1 className="mt-3 font-serif text-3xl text-charcoal sm:text-4xl md:text-5xl">{published.title}</h1>
           <p className="mt-4 max-w-3xl text-muted">{published.excerpt}</p>
           <div className="mt-8">
             <BlockRenderer
@@ -233,7 +233,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
       <SiteHeader />
       <article className="container-premium py-14">
         <p className="text-[11px] uppercase tracking-[0.14em] text-primary">{item.category ?? "Article"}</p>
-        <h1 className="mt-3 font-serif text-5xl text-charcoal">{item.title}</h1>
+        <h1 className="mt-3 font-serif text-3xl text-charcoal sm:text-4xl md:text-5xl">{item.title}</h1>
         <p className="mt-4 max-w-3xl text-muted">{item.excerpt}</p>
         <div className="prose mt-8 max-w-3xl text-charcoal/90">{item.body ?? item.excerpt}</div>
       </article>

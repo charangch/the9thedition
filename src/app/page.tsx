@@ -54,7 +54,7 @@ export default async function Home() {
               View all
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {featuredByAdmin.map((p) => (
               <article
                 key={p.slug}
@@ -88,7 +88,7 @@ export default async function Home() {
             View all
           </Link>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
           {projectsByCategory.map(({ category, slug }) => {
             const p = getProjectBySlug(slug);
             if (!p) return null;
@@ -111,7 +111,7 @@ export default async function Home() {
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
                       {category}
                     </p>
-                    <p className="mt-1 font-serif text-base leading-snug text-charcoal group-hover:text-primary md:text-lg">
+                    <p className="mt-1 break-words font-serif text-base leading-snug text-charcoal group-hover:text-primary md:text-lg">
                       {p.title}
                     </p>
                   </div>
@@ -146,7 +146,7 @@ export default async function Home() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
                 {leadStory.category}
               </p>
-              <h1 className="mt-3 font-serif text-4xl leading-tight md:text-5xl">{leadStory.title}</h1>
+              <h1 className="mt-3 font-serif text-3xl leading-tight sm:text-4xl md:text-5xl">{leadStory.title}</h1>
               <p className="mt-4 text-sm leading-relaxed text-muted">{leadStory.excerpt}</p>
               <p className="mt-4 text-[11px] uppercase tracking-[0.15em] text-charcoal/60">
                 {leadStory.byline}

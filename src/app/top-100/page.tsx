@@ -64,7 +64,7 @@ export default function Top100Page() {
         <section className="border-b border-border bg-card">
           <div className="container-premium py-10 md:py-14">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">Roadmap</p>
-            <h1 className="mt-3 font-serif text-4xl tracking-tight text-foreground md:text-5xl lg:text-6xl">Top 100</h1>
+            <h1 className="mt-3 font-serif text-3xl tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl">Top 100</h1>
             <p className="article-lede mt-5 max-w-3xl text-base leading-relaxed text-muted-foreground md:text-lg">
               {PAGE_DESC} Follow the timeline from #01–#
               {String(projects.length).padStart(2, "0")}; each stop opens a full dossier with imagery, narrative, and

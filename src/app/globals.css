@@ -61,6 +61,19 @@ body {
   font-family: var(--font-inter), sans-serif;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
 a {
   @apply transition-colors duration-200;
 }

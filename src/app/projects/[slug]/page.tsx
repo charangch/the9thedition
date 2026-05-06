@@ -197,7 +197,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               <span className="mx-2">/</span>
               <span className="text-charcoal/80">{published.category}</span>
             </nav>
-            <h1 className="mt-4 max-w-4xl font-serif text-4xl leading-tight md:text-5xl">{published.title}</h1>
+            <h1 className="mt-4 max-w-4xl font-serif text-3xl leading-tight sm:text-4xl md:text-5xl">{published.title}</h1>
             <div className="mt-3 flex flex-wrap gap-3 text-sm text-muted">
               <span className="uppercase tracking-[0.12em] text-primary">{published.category}</span>
               {published.location ? <span>{published.location}</span> : null}
@@ -366,7 +366,7 @@ export default async function ProjectDetailPage({ params }: Props) {
             <span className="mx-2">/</span>
             <span className="text-charcoal/80">{staticProject.category}</span>
           </nav>
-          <h1 className="article-lede mt-4 max-w-4xl font-serif text-4xl leading-tight md:text-5xl">{staticProject.title}</h1>
+          <h1 className="article-lede mt-4 max-w-4xl font-serif text-3xl leading-tight sm:text-4xl md:text-5xl">{staticProject.title}</h1>
           <div className="mt-3 flex flex-wrap gap-3 text-sm text-muted">
             <span className="uppercase tracking-[0.12em] text-primary">{staticProject.category}</span>
             <span className="text-charcoal/70">· {staticProject.projectType}</span>

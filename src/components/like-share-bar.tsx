@@ -278,7 +278,7 @@ export function LikeShareBar({ storageId, sharePath, title, className, compact }
         </button>
         {shareOpen ? (
           <div
-            className="absolute left-0 top-[calc(100%+6px)] z-50 min-w-[12.5rem] rounded-xl border border-primary/15 bg-surface py-1.5 shadow-lg"
+            className="absolute left-1/2 top-[calc(100%+6px)] z-50 w-[min(12.5rem,calc(100vw-1rem))] -translate-x-1/2 rounded-xl border border-primary/15 bg-surface py-1.5 shadow-lg sm:left-0 sm:w-[12.5rem] sm:translate-x-0"
             role="menu"
           >
             <button

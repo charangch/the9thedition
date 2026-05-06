@@ -21,18 +21,18 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   return (
-    <main className="container-premium py-10">
-      <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+    <main className="container-premium py-6 sm:py-8 md:py-10">
+      <div className="grid gap-5 lg:grid-cols-[230px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="h-fit rounded-xl border border-primary/15 bg-surface p-4 lg:sticky lg:top-20">
           <p className="px-2 text-xs uppercase tracking-[0.14em] text-primary">Admin Workspace</p>
-          <nav className="mt-3 space-y-1">
+          <nav className="mt-3 grid grid-cols-2 gap-1 sm:grid-cols-4 lg:grid-cols-1 lg:space-y-1 lg:gap-0">
             {nav.map((item) => {
               const active = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`block rounded-md px-3 py-2 text-sm ${
+                  className={`block rounded-md px-3 py-2 text-center text-xs sm:text-sm lg:text-left ${
                     active ? "bg-primary/10 font-medium text-primary" : "text-charcoal/80 hover:bg-primary/5"
                   }`}
                 >
@@ -44,7 +44,7 @@ export function AdminShell({
         </aside>
         <section>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h1 className="font-serif text-4xl">{title}</h1>
+            <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl">{title}</h1>
             {pathname !== "/admin" ? (
               <Link
                 href="/admin"

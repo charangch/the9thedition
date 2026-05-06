@@ -27,7 +27,7 @@ export default async function ProfessionalsPage() {
       <SiteHeader />
       <main className="container-premium pb-16 pt-10">
         <div className="max-w-3xl">
-          <h1 className="font-serif text-4xl md:text-5xl">Professionals</h1>
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl">Professionals</h1>
           <p className="mt-4 text-muted">
             Architects and studios behind projects on the9thedition. Open a profile to see all of
             their published work in one place.

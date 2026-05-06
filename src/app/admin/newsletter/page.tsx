@@ -79,12 +79,12 @@ export default function AdminNewsletterPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name or email"
-            className="min-w-[260px] rounded-md border border-primary/20 bg-white px-3 py-2 text-sm"
+            className="w-full min-w-0 rounded-md border border-primary/20 bg-white px-3 py-2 text-sm sm:w-auto sm:min-w-[260px]"
           />
           <button
             type="button"
             onClick={exportSubscribersToExcelCsv}
-            className="rounded-full bg-primary px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white"
+            className="w-full rounded-full bg-primary px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white sm:w-auto"
           >
             Export to Excel (CSV)
           </button>
@@ -97,7 +97,7 @@ export default function AdminNewsletterPage() {
           {loading ? <p className="text-sm text-muted">Loading subscribers…</p> : null}
           {!loading ? (
             <div className="max-h-[560px] overflow-auto">
-              <table className="w-full text-left text-sm">
+              <table className="min-w-[760px] text-left text-sm lg:w-full">
                 <thead>
                   <tr className="border-b border-primary/10 text-xs uppercase tracking-[0.14em] text-primary">
                     <th className="py-2">Name</th>

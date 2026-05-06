@@ -13,7 +13,7 @@ export default function LoginPage() {
             <div className="relative hidden overflow-hidden rounded-2xl border border-primary/15 bg-charcoal/[0.03] p-10 lg:block">
               <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl" aria-hidden />
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">Admin Only</p>
-              <h1 className="mt-4 font-serif text-4xl leading-tight text-charcoal md:text-5xl">
+              <h1 className="mt-4 font-serif text-3xl leading-tight text-charcoal sm:text-4xl md:text-5xl">
                 Publishing operations for the9thedition.
               </h1>
               <p className="mt-6 text-base leading-relaxed text-charcoal/75">

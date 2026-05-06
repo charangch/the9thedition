@@ -36,7 +36,7 @@ export function GeneratedImageGallery({
       <p className="mt-2 text-sm text-muted">
         On-site generated graphics for layout and image SEO—no third-party stock URLs.
       </p>
-      <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <ul className="mt-8 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {indices.map((i) => {
           const src = generatedImagePath(collection, itemKey, i);
           const alt = alts?.[i] ?? `${title} — editorial frame ${i + 1} of ${GENERATED_GALLERY_COUNT}`;

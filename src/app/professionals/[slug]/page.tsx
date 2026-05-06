@@ -62,7 +62,7 @@ export default async function ProfessionalDetailPage({ params }: Props) {
             </div>
           </div>
           <div>
-            <h1 className="font-serif text-4xl md:text-5xl">{architect.firm}</h1>
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl">{architect.firm}</h1>
             <p className="mt-2 text-lg text-muted">{architect.name}</p>
             <p className="mt-6 max-w-2xl leading-relaxed text-charcoal/85">{architect.bio}</p>
           </div>

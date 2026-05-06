@@ -8,7 +8,7 @@ export function SiteFooter() {
     <footer className="border-t border-primary/15 bg-surface">
       <div className="container-premium grid gap-8 py-12 md:grid-cols-3">
         <div>
-          <BrandMark logoClassName="min-h-[4.5rem] md:min-h-[5.1rem]" textClassName="text-charcoal" />
+          <BrandMark logoClassName="min-h-[3.5rem] sm:min-h-[4rem] md:min-h-[5.1rem]" textClassName="text-charcoal" />
           <p className="mt-2 max-w-sm text-xs leading-relaxed text-muted">
             Premium architecture, design, culture, and editorial intelligence.
           </p>
