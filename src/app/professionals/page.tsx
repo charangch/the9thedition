@@ -5,6 +5,14 @@ import { architects } from "@/lib/architects";
 import { getProfessionals } from "@/lib/professionals-db";
 import { countPublishedProjectsByProfessionalId } from "@/lib/published-projects";
 import { getProjectsByArchitectSlug } from "@/lib/project-catalog";
+import { buildPageMetadata } from "@/lib/seo-metadata";
+
+export const metadata = buildPageMetadata({
+  title: "Professionals & architecture studios",
+  description:
+    "Directory of architecture practices, designers, and editorial profiles linked to published projects on The 9th Edition.",
+  path: "/professionals",
+});
 
 export default async function ProfessionalsPage() {
   const dbProfessionals = await getProfessionals(180);

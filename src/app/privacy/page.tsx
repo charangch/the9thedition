@@ -60,6 +60,13 @@ export default function PrivacyPage() {
               authentication, hosting, storage, email operations, and analytics/security tooling, subject to
               confidentiality and data protection obligations.
             </p>
+            <p className="mt-2 text-xs leading-relaxed text-charcoal/75">
+              Typical processors include{" "}
+              <strong>Vercel</strong> (site hosting and request logs), <strong>InsForge</strong> (database,
+              authentication, and object storage for uploads), optional <strong>Upstash</strong> (Redis used for
+              distributed rate limiting), and <strong>Sentry</strong> (error monitoring and performance diagnostics).
+              Subprocessors may change; material updates will be reflected here or via on-site notice where required.
+            </p>
           </section>
 
           <section>

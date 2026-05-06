@@ -34,6 +34,9 @@ export function SiteFooter() {
           <Link href="/terms" className="hover:text-primary">
             Terms
           </Link>
+          <Link href="/report-bug" className="hover:text-primary">
+            Report a bug
+          </Link>
           <Link href="/architecture-news" className="hover:text-primary">
             Architecture News
           </Link>

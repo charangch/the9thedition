@@ -47,7 +47,7 @@ export async function generateMetadata({
       type: "website",
       locale: "en_US",
       url: `${site}/archive`,
-      siteName: "the9thedition",
+      siteName: "The 9th Edition",
       title: `${PAGE_TITLE} | the9thedition`,
       description: PAGE_DESC,
     },

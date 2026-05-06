@@ -1,6 +1,8 @@
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import Image from "next/image";
+import { buildPageMetadata } from "@/lib/seo-metadata";
+import { SITE_DESCRIPTION } from "@/lib/site-metadata";
 import { LikeShareBar } from "@/components/like-share-bar";
 import { SiteHeader } from "@/components/site-header";
 import { EditorsRadar } from "@/components/editors-radar";
@@ -23,6 +25,12 @@ import {
 } from "@/lib/project-catalog";
 import { generatedImagePath } from "@/lib/generated-media";
 import { getFeaturedPublishedProjects, getTrendingPublishedProjects } from "@/lib/published-projects";
+
+export const metadata = buildPageMetadata({
+  title: "Architecture, design & editorial intelligence",
+  description: SITE_DESCRIPTION,
+  path: "/",
+});
 
 const loadHomePublishedRails = unstable_cache(
   async () => {

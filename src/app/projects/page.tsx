@@ -6,6 +6,14 @@ import { getArchitectBySlug } from "@/lib/architects";
 import { generatedImagePath } from "@/lib/generated-media";
 import { getPublishedProjects } from "@/lib/published-projects";
 import { getAllProjects } from "@/lib/project-catalog";
+import { buildPageMetadata } from "@/lib/seo-metadata";
+
+export const metadata = buildPageMetadata({
+  title: "Architecture & design projects",
+  description:
+    "Explore curated residential, cultural, and interior architecture projects across India and the region—editorial documentation and studio portfolios.",
+  path: "/projects",
+});
 
 export default async function ProjectsPage() {
   const [published, staticProjects] = await Promise.all([getPublishedProjects(120), Promise.resolve(getAllProjects())]);

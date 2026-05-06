@@ -61,6 +61,11 @@ export default function CookiesPage() {
               Some service providers may set cookies on our behalf to support hosting, security, analytics, and media
               delivery. Their processing is governed by contractual and legal controls.
             </p>
+            <p className="mt-2 text-xs leading-relaxed text-charcoal/75">
+              For example, our hosting provider (Vercel) and reliability tooling (such as Sentry, when enabled) may use
+              strictly necessary or diagnostic technologies to deliver pages and capture anonymized error signals. You
+              can review subprocessors in our Privacy Policy.
+            </p>
           </section>
 
           <section>

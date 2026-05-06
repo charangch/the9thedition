@@ -1,5 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -39,4 +40,15 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+const sentryOptions = {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  tunnelRoute: "/monitoring",
+  disableLogger: true,
+};
+
+export default process.env.SENTRY_ORG && process.env.SENTRY_PROJECT
+  ? withSentryConfig(nextConfig, sentryOptions)
+  : nextConfig;

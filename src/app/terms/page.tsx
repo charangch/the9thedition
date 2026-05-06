@@ -80,6 +80,11 @@ export default function TermsPage() {
               law, we disclaim implied warranties and limit liability for indirect or consequential losses resulting from
               use of the platform.
             </p>
+            <p className="mt-2 text-xs leading-relaxed text-charcoal/75">
+              We may use technical monitoring (including error tracking) to keep the service reliable. Reports you
+              submit via the bug form are stored securely and reviewed by our team; see the Privacy Policy for retention
+              and contact details.
+            </p>
           </section>
 
           <section>

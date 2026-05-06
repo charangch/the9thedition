@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sendLeadNotificationEmail } from "@/app/actions/lead-notify";
+import { sanitizePlainText } from "@/lib/api-validation";
 import {
   createInsForgeServerClientPublic,
   getInsForgePublicEnv,
   insforgeNotConfiguredResponse,
 } from "@/lib/insforge-server";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 const e164 = z
   .string()
@@ -42,6 +44,12 @@ export async function POST(request: Request) {
   if (!getInsForgePublicEnv()) {
     return insforgeNotConfiguredResponse();
   }
+
+  const limiter = rateLimit(`enquiry:${clientIp(request)}`, { limit: 15, windowMs: 60_000 });
+  if (!limiter.ok) {
+    return NextResponse.json({ error: "Too many requests. Try again shortly." }, { status: 429 });
+  }
+
   let json: unknown;
   try {
     json = await request.json();
@@ -62,7 +70,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: first, details: flat }, { status: 400 });
   }
 
-  const { projectSlug, name, email, phone, message } = parsed.data;
+  const projectSlug = parsed.data.projectSlug.trim().replace(/[\r\n\0]/g, "").slice(0, 200);
+  const name = sanitizePlainText(parsed.data.name, 120);
+  const email = sanitizePlainText(parsed.data.email, 320);
+  const phone = parsed.data.phone;
+  const message = sanitizePlainText(parsed.data.message, 5000);
 
   const db = createInsForgeServerClientPublic();
   const { error } = await db.database.from("inquiries").insert([

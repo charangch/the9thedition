@@ -1,7 +1,15 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
+import { buildPageMetadata } from "@/lib/seo-metadata";
 import { LoginForm } from "./login-form";
+
+export const metadata = buildPageMetadata({
+  title: "Admin sign-in",
+  description: "Restricted sign-in for The 9th Edition publishing administrators.",
+  path: "/login",
+  noIndex: true,
+});
 
 export default function LoginPage() {
   return (

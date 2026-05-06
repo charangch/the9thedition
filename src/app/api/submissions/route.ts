@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { sanitizePlainText } from "@/lib/api-validation";
 import { createInsForgeServerClientPublic, getInsForgePublicEnv, insforgeNotConfiguredResponse } from "@/lib/insforge-server";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { slugifyProject, submissionFormSchema } from "@/lib/submission-template";
 
 const payloadSchema = z.object({
@@ -36,6 +38,11 @@ export async function POST(request: Request) {
     return insforgeNotConfiguredResponse();
   }
 
+  const limiter = rateLimit(`submission:public:${clientIp(request)}`, { limit: 10, windowMs: 60_000 });
+  if (!limiter.ok) {
+    return NextResponse.json({ error: "Too many submissions. Try again shortly." }, { status: 429 });
+  }
+
   const json = await request.json().catch(() => null);
   const parsed = payloadSchema.safeParse(json);
   if (!parsed.success) {
@@ -44,19 +51,30 @@ export async function POST(request: Request) {
 
   const { formData } = parsed.data;
   const db = createInsForgeServerClientPublic();
-  const leadMessage = buildLeadMessage({
-    projectName: formData.projectName,
-    architectureFirm: formData.architectureFirm,
-    projectLocation: formData.projectLocation,
-    shortText: formData.shortText,
-    longText: formData.longText,
-  });
+  const leadMessage = sanitizePlainText(
+    buildLeadMessage({
+      projectName: formData.projectName,
+      architectureFirm: formData.architectureFirm,
+      projectLocation: formData.projectLocation,
+      shortText: formData.shortText,
+      longText: formData.longText,
+    }),
+    8000,
+  );
+
+  const rawProjectId = formData.projectName.trim() || slugifyProject(formData.projectName);
+  const project_id = rawProjectId.replace(/[\r\n\0]/g, "").slice(0, 200);
+  const contactName = sanitizePlainText(
+    formData.leadArchitects.trim() || formData.architectureFirm.trim(),
+    200,
+  );
+  const contactEmail = sanitizePlainText(formData.contactEmail.trim(), 320);
 
   const { error } = await db.database.from("inquiries").insert([
     {
-      project_id: formData.projectName.trim() || slugifyProject(formData.projectName),
-      name: formData.leadArchitects.trim() || formData.architectureFirm.trim(),
-      email: formData.contactEmail.trim(),
+      project_id: project_id || slugifyProject(formData.projectName),
+      name: contactName,
+      email: contactEmail,
       message: leadMessage,
       status: "new",
       internal_notes: null,

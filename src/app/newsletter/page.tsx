@@ -1,5 +1,13 @@
 import { SiteHeader } from "@/components/site-header";
 import { NewsletterPanel } from "@/components/newsletter-panel";
+import { buildPageMetadata } from "@/lib/seo-metadata";
+
+export const metadata = buildPageMetadata({
+  title: "Newsletter & editorial briefing",
+  description:
+    "Subscribe to The 9th Edition for architecture news, project intelligence, and design culture—delivered with clear consent and privacy controls.",
+  path: "/newsletter",
+});
 
 export default async function NewsletterPage() {
   return (

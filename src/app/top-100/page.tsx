@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       locale: "en_US",
       url: `${site}/top-100`,
-      siteName: "the9thedition",
+      siteName: "The 9th Edition",
       title: "Top 100 | the9thedition",
       description: PAGE_DESC,
     },

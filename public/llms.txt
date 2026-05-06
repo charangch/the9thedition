@@ -1,0 +1,20 @@
+# The 9th Edition
+# Architecture, design, and editorial intelligence — structured discovery for humans and tools.
+
+Site: https://www.theninthedition.com
+Contact: support@theninthedition.com
+
+## Primary sections
+- /projects — Featured and published architecture & design projects
+- /architecture-news — News and industry briefs
+- /articles — Long-form editorial
+- /archive — Cultural and precedent studies
+- /professionals — Studio and professional directory
+- /top-100 — Curated project lists
+- /newsletter — Reader subscriptions
+- /submission-guidelines — How to submit work for editorial consideration
+
+## Policies
+- /privacy
+- /terms
+- /cookies

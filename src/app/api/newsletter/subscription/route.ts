@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { sanitizePlainText } from "@/lib/api-validation";
 import { createInsForgeServerClientPublic, getInsForgePublicEnv } from "@/lib/insforge-server";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const email = parsed.data.email.toLowerCase();
+    const email = sanitizePlainText(parsed.data.email, 320).toLowerCase();
     const now = new Date().toISOString();
 
     const client = createInsForgeServerClientPublic();
@@ -70,7 +71,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    const subscriberName = (parsed.data.name ?? "").trim();
+    const subscriberName = sanitizePlainText((parsed.data.name ?? "").trim(), 120);
+    const source = sanitizePlainText(parsed.data.source ?? "web", 80);
     const { error } = await client.database.from("newsletter_subscriptions").upsert(
       [
         {
@@ -78,7 +80,7 @@ export async function POST(request: Request) {
           email,
           subscriber_name: subscriberName,
           status: "subscribed",
-          source: parsed.data.source ?? "web",
+          source,
           updated_at: now,
         },
       ],
