@@ -22,7 +22,14 @@ export type PublishedProject = {
   created_at?: string | null;
   is_featured_home?: boolean;
   published_at?: string | null;
+  deleted_at?: string | null;
+  editorial_status?: string | null;
+  archived_at?: string | null;
 };
+
+function isActivePublished(row: PublishedProject): boolean {
+  return row.editorial_status !== "archived";
+}
 
 /** Detail pages + admin — includes heavy `content` / `layout_blocks`. */
 const publishedProjectSelectFull =
@@ -59,8 +66,36 @@ export async function getPublishedProjectBySlug(slug: string): Promise<Published
 
   if (error) return null;
   const row = (Array.isArray(data) ? data[0] : data) as PublishedProject | undefined;
+  if (!row || !isActivePublished(row)) return null;
+  return normalizeRow(row);
+}
+
+/** Archived admin-published projects — shown first on /archive. */
+export async function getArchivedPublishedBySlug(slug: string): Promise<PublishedProject | null> {
+  const client = createInsForgeServerClientPublic();
+  const { data, error } = await client.database
+    .from("published_projects")
+    .select(publishedProjectSelectFull)
+    .eq("slug", slug)
+    .eq("editorial_status", "archived")
+    .limit(1);
+  if (error) return null;
+  const row = (Array.isArray(data) ? data[0] : data) as PublishedProject | undefined;
   if (!row) return null;
   return normalizeRow(row);
+}
+
+export async function getArchivedPublishedForArchive(limit = 48): Promise<PublishedProject[]> {
+  const client = createInsForgeServerClientPublic();
+  const { data, error } = await client.database
+    .from("published_projects")
+    .select(publishedProjectSelectSlim)
+    .eq("editorial_status", "archived")
+    .order("archived_at", { ascending: false, nullsFirst: false })
+    .limit(limit);
+  if (error) return [];
+  const rows = Array.isArray(data) ? data : [];
+  return rows.map((row) => normalizeRow(row as PublishedProject));
 }
 
 export async function getFeaturedPublishedProjects(limit = 6): Promise<PublishedProject[]> {
@@ -73,7 +108,23 @@ export async function getFeaturedPublishedProjects(limit = 6): Promise<Published
     .limit(limit);
   if (error) return [];
   const rows = Array.isArray(data) ? data : [];
-  return rows.map((row) => normalizeRow(row as PublishedProject));
+  return rows.map((row) => normalizeRow(row as PublishedProject)).filter(isActivePublished);
+}
+
+/** FIFO homepage rail — newest published first. */
+export async function getLatestPublishedProjects(limit = 6): Promise<PublishedProject[]> {
+  const client = createInsForgeServerClientPublic();
+  const { data, error } = await client.database
+    .from("published_projects")
+    .select(publishedProjectSelectHome)
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .limit(limit * 2);
+  if (error) return [];
+  const rows = Array.isArray(data) ? data : [];
+  return rows
+    .map((row) => normalizeRow(row as PublishedProject))
+    .filter(isActivePublished)
+    .slice(0, limit);
 }
 
 export async function getPublishedProjects(limit = 200): Promise<PublishedProject[]> {
@@ -85,7 +136,7 @@ export async function getPublishedProjects(limit = 200): Promise<PublishedProjec
     .limit(limit);
   if (error) return [];
   const rows = Array.isArray(data) ? data : [];
-  return rows.map((row) => normalizeRow(row as PublishedProject));
+  return rows.map((row) => normalizeRow(row as PublishedProject)).filter(isActivePublished);
 }
 
 export async function getTrendingPublishedProjects(limit = 3): Promise<PublishedProject[]> {
@@ -98,7 +149,7 @@ export async function getTrendingPublishedProjects(limit = 3): Promise<Published
     .limit(limit);
   if (error) return [];
   const rows = Array.isArray(data) ? data : [];
-  return rows.map((row) => normalizeRow(row as PublishedProject));
+  return rows.map((row) => normalizeRow(row as PublishedProject)).filter(isActivePublished);
 }
 
 export async function getPublishedProjectsByArchitectureFirm(
@@ -159,7 +210,9 @@ export async function getPublishedProjectsByProfessionalId(
     .limit(limit);
   if (error) return [];
   const rows = Array.isArray(data) ? data : [];
-  return rows.map((row) => normalizeRow(row as PublishedProject));
+  return rows
+    .map((row) => normalizeRow(row as PublishedProject))
+    .filter(isActivePublished);
 }
 
 /** Count-only — avoids loading rows when only totals are needed (e.g. directory cards). */

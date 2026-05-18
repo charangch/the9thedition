@@ -8,7 +8,10 @@ import {
   getArchiveCategories,
   getFeaturedArchiveProject,
   listArchiveProjects,
+  type ArchiveProject,
 } from "@/lib/archive-projects";
+import { publishedToArchiveProject } from "@/lib/admin/published-to-archive";
+import { getArchivedPublishedForArchive } from "@/lib/published-projects";
 import { generatedImagePath } from "@/lib/generated-media";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -73,9 +76,26 @@ export default async function ArchivePage({
   const page = Math.max(1, parseInt(p.page ?? "1", 10) || 1);
   const category = p.category?.trim() || null;
   const q = p.q?.trim() || null;
-  const { items, total, page: currentPage, totalPages } = listArchiveProjects({ page, category, q });
+  const archivedPublished =
+    page === 1 && !category && !q ? await getArchivedPublishedForArchive(24) : [];
+  const archivedAsArchive: ArchiveProject[] = archivedPublished.map(publishedToArchiveProject);
+  const archivedSlugs = new Set(archivedAsArchive.map((x) => x.slug));
+
+  const staticList = listArchiveProjects({ page, category, q });
+  const mergedItems: ArchiveProject[] =
+    page === 1 && !category && !q
+      ? [
+          ...archivedAsArchive,
+          ...staticList.items.filter((x) => !archivedSlugs.has(x.slug)),
+        ]
+      : staticList.items;
+
+  const items = mergedItems;
+  const total = staticList.total + (page === 1 && !category && !q ? archivedAsArchive.length : 0);
+  const currentPage = staticList.page;
+  const totalPages = staticList.totalPages;
   const categories = getArchiveCategories();
-  const showFeatured = currentPage === 1 && !category && !q;
+  const showFeatured = currentPage === 1 && !category && !q && archivedAsArchive.length === 0;
   const featured = showFeatured ? getFeaturedArchiveProject() : null;
   const gridItems =
     showFeatured && featured ? items.filter((x) => x.slug !== featured.slug) : items;

@@ -4,6 +4,7 @@ import { LikeShareBar } from "@/components/like-share-bar";
 import { SiteHeader } from "@/components/site-header";
 import { getArchitectBySlug } from "@/lib/architects";
 import { generatedImagePath } from "@/lib/generated-media";
+import { shouldUseUnoptimizedImage } from "@/lib/media/remote-image";
 import { getPublishedProjects } from "@/lib/published-projects";
 import { getAllProjects } from "@/lib/project-catalog";
 import { buildPageMetadata } from "@/lib/seo-metadata";
@@ -68,7 +69,7 @@ export default async function ProjectsPage() {
                     fill
                     sizes="(max-width: 1024px) 100vw, 33vw"
                     className="object-cover transition duration-300 group-hover:scale-[1.02]"
-                    unoptimized={project.image.startsWith("/api/generated-image")}
+                    unoptimized={shouldUseUnoptimizedImage(project.image)}
                   />
                 </div>
                 <div className="p-4">

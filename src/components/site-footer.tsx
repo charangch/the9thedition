@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { BrandMark } from "@/components/brand-mark";
-import { InstagramIcon, LinkedInIcon, XIcon, YouTubeIcon } from "@/components/social-brand-icons";
+import { FacebookIcon, InstagramIcon, LinkedInIcon, XIcon, YouTubeIcon } from "@/components/social-brand-icons";
 import { EDITORIAL_EMAIL, SUPPORT_EMAIL } from "@/lib/site-contact";
+import { SITE_FACEBOOK_URL, SITE_INSTAGRAM_URL } from "@/lib/site-social";
 
 export function SiteFooter() {
   return (
@@ -54,13 +55,22 @@ export function SiteFooter() {
           <p className="text-[11px] uppercase tracking-[0.14em] text-primary">Social</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <a
-              href="https://instagram.com"
+              href={SITE_INSTAGRAM_URL}
               target="_blank"
               rel="noreferrer"
               aria-label="Instagram"
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/20 bg-white/90 text-charcoal transition hover:border-primary hover:shadow-sm"
             >
               <InstagramIcon />
+            </a>
+            <a
+              href={SITE_FACEBOOK_URL}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Facebook"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/20 bg-white/90 transition hover:border-primary hover:shadow-sm"
+            >
+              <FacebookIcon />
             </a>
             <a
               href="https://linkedin.com"

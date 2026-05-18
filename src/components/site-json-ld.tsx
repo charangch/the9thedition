@@ -1,5 +1,6 @@
 import { navItems } from "@/lib/content";
 import { SITE_BRAND, SITE_DESCRIPTION } from "@/lib/site-metadata";
+import { SITE_FACEBOOK_URL, SITE_INSTAGRAM_URL } from "@/lib/site-social";
 import { getSiteUrl } from "@/lib/site-url";
 
 function jsonLdScript(data: Record<string, unknown>) {
@@ -21,12 +22,7 @@ export function SiteJsonLd() {
     url: base,
     description: SITE_DESCRIPTION,
     logo: `${base}/images/brand/edition-arch-logo.png`,
-    sameAs: [
-      "https://instagram.com",
-      "https://linkedin.com",
-      "https://youtube.com",
-      "https://x.com",
-    ],
+    sameAs: [SITE_INSTAGRAM_URL, SITE_FACEBOOK_URL, "https://linkedin.com", "https://youtube.com", "https://x.com"],
   };
 
   const website = {
