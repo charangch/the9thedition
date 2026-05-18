@@ -4,6 +4,20 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+function insforgeImagePattern() {
+  const raw = process.env.NEXT_PUBLIC_INSFORGE_URL?.trim();
+  if (!raw) return null;
+  try {
+    const { protocol, hostname } = new URL(raw);
+    if (!hostname) return null;
+    return { protocol: protocol.replace(":", ""), hostname };
+  } catch {
+    return null;
+  }
+}
+
+const insforgePattern = insforgeImagePattern();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async redirects() {
@@ -26,6 +40,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "*.insforge.app",
+      },
+      ...(insforgePattern ? [insforgePattern] : []),
     ],
     localPatterns: [
       {

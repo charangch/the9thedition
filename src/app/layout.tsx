@@ -55,7 +55,7 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: siteUrl },
   icons: {
-    icon: [{ url: "/images/brand/edition-arch-logo.png", type: "image/png" }],
+    icon: [{ url: "/the9th-edition-logo.png", type: "image/png" }],
   },
 };
 

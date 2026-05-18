@@ -11,6 +11,7 @@ import { ProjectPageJsonLd } from "@/components/project-json-ld";
 import { LikeShareBar } from "@/components/like-share-bar";
 import { RelatedProjectsRail, type RelatedProjectRailItem } from "@/components/related-projects-rail";
 import { SaveProjectButton } from "@/components/save-project-button";
+import { PublishedProjectDetail } from "@/components/published-project-detail";
 import { SiteHeader } from "@/components/site-header";
 import { type LayoutBlock, normalizeLayoutBlocks } from "@/lib/layout-blocks";
 import { getArchitectBySlug } from "@/lib/architects";
@@ -170,166 +171,10 @@ export default async function ProjectDetailPage({ params }: Props) {
   }
 
   if (published) {
-    const parsedBlocks = normalizeLayoutBlocks(published.layout_blocks);
-    const hasLead = parsedBlocks.some((b) => b.type === "LeadInquiryForm");
-    const blocksWithLead: LayoutBlock[] = hasLead
-      ? parsedBlocks
-      : [...parsedBlocks, { id: "lead-default", type: "LeadInquiryForm", heading: "Enquire about this project" }];
-    const form = (published.form_data ?? {}) as Record<string, string>;
-    const imageCaptions = Array.isArray((published.form_data as Record<string, unknown> | null)?.imageCaptions)
-      ? ((published.form_data as Record<string, unknown>).imageCaptions as string[])
-      : [];
-    const galleryImages = mergePublishedImages(published);
-    const gen = generatedGalleryPaths("projects", published.slug);
-    const heroSrc = published.hero_image_url ?? galleryImages[0] ?? gen[0]!;
-    const videoUrl = published.video_links[0] ?? DEFAULT_YOUTUBE;
-    const relatedPublished = pickRelatedPublished(published, allPublished);
-
     return (
       <>
         <SiteHeader />
-        <article className="pb-20">
-          <div className="container-premium pt-8">
-            <nav className="text-xs uppercase tracking-[0.16em] text-muted">
-              <Link href="/projects" className="hover:text-primary">
-                Projects
-              </Link>
-              <span className="mx-2">/</span>
-              <span className="text-charcoal/80">{published.category}</span>
-            </nav>
-            <h1 className="mt-4 max-w-4xl font-serif text-3xl leading-tight sm:text-4xl md:text-5xl">{published.title}</h1>
-            <div className="mt-3 flex flex-wrap gap-3 text-sm text-muted">
-              <span className="uppercase tracking-[0.12em] text-primary">{published.category}</span>
-              {published.location ? <span>{published.location}</span> : null}
-              {published.byline ? <span>{published.byline}</span> : null}
-            </div>
-            {published.professional_slug ? (
-              <p className="mt-2 text-sm text-charcoal/80">
-                Professional profile:{" "}
-                <Link href={`/professionals/${published.professional_slug}`} className="font-medium text-primary hover:underline">
-                  Open profile
-                </Link>
-              </p>
-            ) : null}
-            <div className="mt-5">
-              <LikeShareBar
-                storageId={`project:${published.slug}`}
-                sharePath={`/projects/${published.slug}`}
-                title={published.title}
-              />
-            </div>
-          </div>
-          <div className="container-premium mt-8">
-            <div className="relative aspect-[21/9] overflow-hidden rounded-xl bg-charcoal/5">
-              <Image
-                src={heroSrc}
-                alt={published.title}
-                fill
-                sizes="(max-width: 1280px) 100vw, 1280px"
-                className="object-cover"
-                priority
-                unoptimized={heroSrc.startsWith("/api/generated-image")}
-              />
-            </div>
-          </div>
-          <div className="container-premium mt-12 grid gap-12 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] lg:gap-16 xl:grid-cols-[300px_minmax(0,1fr)]">
-            <aside className="space-y-8 lg:sticky lg:top-28 lg:self-start">
-              <section className="rounded-xl border border-primary/15 bg-surface p-4 text-sm">
-                <h2 className="font-serif text-xl text-charcoal">Submission details</h2>
-                <dl className="mt-3 space-y-2">
-                  <div>
-                    <dt className="text-xs uppercase tracking-[0.12em] text-muted">Category</dt>
-                    <dd>{published.category || "Project"}</dd>
-                  </div>
-                  {(published.form_data as Record<string, unknown> | null)?.projectType ? (
-                    <div>
-                      <dt className="text-xs uppercase tracking-[0.12em] text-muted">Type</dt>
-                      <dd>{String((published.form_data as Record<string, unknown>).projectType)}</dd>
-                    </div>
-                  ) : null}
-                  {published.location || form.projectLocation ? (
-                    <div>
-                      <dt className="text-xs uppercase tracking-[0.12em] text-muted">Location</dt>
-                      <dd>{published.location || form.projectLocation}</dd>
-                    </div>
-                  ) : null}
-                  {form.grossBuiltArea ? (
-                    <div>
-                      <dt className="text-xs uppercase tracking-[0.12em] text-muted">Area</dt>
-                      <dd>{form.grossBuiltArea}</dd>
-                    </div>
-                  ) : null}
-                  {form.completionYear ? (
-                    <div>
-                      <dt className="text-xs uppercase tracking-[0.12em] text-muted">Year</dt>
-                      <dd>{form.completionYear}</dd>
-                    </div>
-                  ) : null}
-                  {form.renderCredits ? (
-                    <div>
-                      <dt className="text-xs uppercase tracking-[0.12em] text-muted">Photographer Credits</dt>
-                      <dd>{form.renderCredits}</dd>
-                    </div>
-                  ) : null}
-                </dl>
-              </section>
-            </aside>
-            <div>
-              {published.excerpt ? (
-                <p className="font-serif text-xl italic leading-snug text-charcoal/85 md:text-2xl">{published.excerpt}</p>
-              ) : null}
-              <div className="mt-8">
-                <BlockRenderer
-                  blocks={blocksWithLead}
-                  context={{ pageType: "project", slug: published.slug, title: published.title }}
-                />
-              </div>
-              <div className="mt-6 space-y-6">
-                <p className="text-base leading-[1.75] text-charcoal/90 md:text-[17px]">{published.content ?? ""}</p>
-              </div>
-              <ProjectGalleryPremium title={published.title} images={galleryImages} />
-              {galleryImages.length ? (
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {galleryImages.slice(0, 8).map((src, i) =>
-                    imageCaptions[i] ? (
-                      <p key={`${src}-${i}`} className="text-xs text-muted">
-                        {imageCaptions[i]}
-                      </p>
-                    ) : null,
-                  )}
-                </div>
-              ) : null}
-              <ProjectVideoBlock url={videoUrl} title={`${published.title} — video`} />
-              {published.external_links.length ? (
-                <div className="mt-8 rounded-xl border border-primary/15 bg-surface p-4">
-                  <h3 className="font-serif text-xl text-charcoal">Reference links</h3>
-                  <ul className="mt-3 space-y-2 text-sm">
-                    {published.external_links.map((link) => (
-                      <li key={link}>
-                        <a href={link} target="_blank" rel="noreferrer" className="text-primary hover:underline">
-                          {link}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              <div className="mt-10 border-t border-charcoal/10 pt-8">
-                <SaveProjectButton
-                  slug={published.slug}
-                  title={published.title}
-                  imageUrl={published.hero_image_url ?? galleryImages[0] ?? generatedImagePath("projects", published.slug, 0)}
-                />
-              </div>
-              {relatedPublished.length ? (
-                <RelatedProjectsRail
-                  items={toPublishedRailItems(relatedPublished)}
-                  subheading="Same practice, category, or editorial family—scroll for more. We list up to 24 picks."
-                />
-              ) : null}
-            </div>
-          </div>
-        </article>
+        <PublishedProjectDetail published={published} allPublished={allPublished} />
       </>
     );
   }

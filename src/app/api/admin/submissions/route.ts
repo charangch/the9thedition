@@ -2,172 +2,179 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { logAdminAction } from "@/lib/admin-audit";
+import {
+  formatZodIssues,
+  projectPublishDraftSchema,
+  projectPublishFormSchema,
+} from "@/lib/admin/project-publish-schema";
+import { resolveProfessionalForPublish } from "@/lib/admin/publish-professional";
+import { syncProfessionalProjectCount } from "@/lib/editorial/professional-count";
 import { createInsForgeServerClient } from "@/lib/insforge-server";
-import { defaultLayoutBlocks, normalizeLayoutBlocks } from "@/lib/layout-blocks";
-import { parsePublishingSource } from "@/lib/publishing-parser";
-import { upsertProfessionalByName } from "@/lib/professionals-db";
 import { requireAdminSession } from "@/lib/admin-session";
-import { slugifyProject, submissionFormSchema } from "@/lib/submission-template";
+import { QUEUE_STATUS } from "@/lib/admin/queue-status";
+import { slugifyProject } from "@/lib/submission-template";
 
-const createSchema = z.object({
-  contentType: z.enum(["project", "student"]),
-  sourceText: z.string().min(1),
-  sourcePdfUrl: z.string().url().optional().or(z.literal("")),
-  imageUrls: z.array(z.string().url()).max(80).optional(),
-  videoLinks: z.array(z.string().url()).max(40).optional(),
-  taxonomyName: z.string().max(200).optional(),
-  taxonomyKind: z.enum(["professional", "company"]).optional(),
-  isTrending: z.boolean().optional(),
-  layoutBlocks: z.array(z.record(z.string(), z.unknown())).optional(),
+const queueSelect =
+  "id, content_type, status, title, form_data, image_urls, video_links, published_slug, published_url, published_at, created_at, updated_at";
+
+const saveSchema = z.object({
+  id: z.string().uuid().optional(),
+  form: projectPublishDraftSchema,
+  action: z.enum(["save", "publish"]).optional(),
 });
 
 const patchSchema = z.object({
   id: z.string().uuid(),
-  contentType: z.enum(["project", "student"]).optional(),
-  status: z.enum(["pending", "review", "published"]).optional(),
-  title: z.string().min(2).max(200).optional(),
-  sourceText: z.string().optional(),
-  sourcePdfUrl: z.string().url().optional().or(z.literal("")),
-  formData: submissionFormSchema.partial().optional(),
-  imageUrls: z.array(z.string().url()).max(80).optional(),
-  videoLinks: z.array(z.string().url()).max(40).optional(),
-  taxonomyName: z.string().max(200).optional(),
-  taxonomyKind: z.enum(["professional", "company"]).optional(),
-  isTrending: z.boolean().optional(),
-  layoutBlocks: z.array(z.record(z.string(), z.unknown())).optional(),
-  action: z.enum(["save", "publish"]).optional(),
+  action: z.enum(["save", "publish", "delete"]).optional(),
+  form: projectPublishFormSchema.optional(),
 });
 
-export async function GET() {
-  const admin = await requireAdminSession();
-  if (!admin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+type DraftForm = z.infer<typeof projectPublishDraftSchema>;
 
-  const client = createInsForgeServerClient(admin.session.accessToken);
-  const { data, error } = await client.database
-    .from("admin_publishing_queue")
-    .select(
-      "id, content_type, status, title, source_text, source_pdf_url, form_data, image_urls, video_links, layout_blocks, taxonomy_name, taxonomy_kind, is_trending, media, published_slug, published_url, published_at, created_at, updated_at",
-    )
-    .order("created_at", { ascending: false })
-    .limit(200);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-
-  return NextResponse.json({ queue: data ?? [] });
+function imageListFromForm(form: DraftForm): string[] {
+  const hero = (form.coverImageUrl ?? "").trim();
+  const gallery = (form.galleryUrls ?? []).map((u) => u.trim()).filter(Boolean);
+  const merged = hero ? [hero, ...gallery.filter((u) => u !== hero)] : gallery;
+  return merged.slice(0, 26);
 }
 
-export async function POST(request: Request) {
-  const admin = await requireAdminSession();
-  if (!admin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  let payloadJson: unknown;
-  try {
-    payloadJson = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  const parsed = createSchema.safeParse(payloadJson);
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  }
-
-  const sourceText = parsed.data.sourceText;
-  const extracted = parsePublishingSource(sourceText);
-  const imageUrls = parsed.data.imageUrls ?? [];
-  const videoLinks = parsed.data.videoLinks ?? [];
-  const pdfUrls = parsed.data.sourcePdfUrl ? [parsed.data.sourcePdfUrl] : [];
-  const layoutBlocks = normalizeLayoutBlocks(
-    parsed.data.layoutBlocks ??
-      defaultLayoutBlocks({
-        title: extracted.title,
-        body: extracted.longText,
-        imageUrls,
-        facts: [
-          { label: "Project Name", value: extracted.formData.projectName },
-          { label: "Architecture Firm", value: extracted.formData.architectureFirm },
-          { label: "Project Location", value: extracted.formData.projectLocation },
-        ].filter((v) => v.value),
-      }),
-  );
-  const client = createInsForgeServerClient(admin.session.accessToken);
-  const { error } = await client.database.from("admin_publishing_queue").insert([
-    {
-      content_type: parsed.data.contentType,
-      status: "pending",
-      title: extracted.title,
-      source_text: sourceText,
-      source_pdf_url: parsed.data.sourcePdfUrl || null,
-      form_data: extracted.formData,
-      image_urls: imageUrls,
-      video_links: videoLinks,
-      layout_blocks: layoutBlocks,
-      taxonomy_name: parsed.data.taxonomyName?.trim() || null,
-      taxonomy_kind: parsed.data.taxonomyKind || null,
-      is_trending: parsed.data.isTrending ?? false,
-      media: { images: imageUrls, videos: videoLinks, pdfs: pdfUrls },
-      published_slug: extracted.slug || null,
-      updated_at: new Date().toISOString(),
+function rowFromForm(form: DraftForm) {
+  const images = imageListFromForm(form);
+  const videoLinks = form.videoUrl?.trim() ? [form.videoUrl.trim()] : [];
+  return {
+    title: form.projectName,
+    form_data: {
+      ...form,
+      projectName: form.projectName,
+      shortText: form.dek,
+      longText: form.narrative,
+      coverImageUrl: form.coverImageUrl,
     },
-  ]);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-
-  await logAdminAction({
-    accessToken: admin.session.accessToken,
-    adminUserId: admin.session.user.id,
-    action: "publishing_ingested",
-    entityType: "admin_publishing_queue",
-    entityId: "new-entry",
-    payload: { contentType: parsed.data.contentType },
-  });
-
-  return NextResponse.json({ ok: true });
+    image_urls: images,
+    video_links: videoLinks,
+    taxonomy_name: form.architectureFirm,
+    taxonomy_kind: "professional" as const,
+  };
 }
 
 async function uniqueSlug(
   client: ReturnType<typeof createInsForgeServerClient>,
-  table: "published_projects" | "published_students",
   base: string,
+  preferred?: string,
 ) {
-  const normalized = base || "untitled-entry";
-  let index = 0;
-  // Keep this bounded to avoid endless loops on bad DB responses.
-  while (index < 50) {
-    const candidate = index === 0 ? normalized : `${normalized}-${index + 1}`;
-    const { data, error } = await client.database.from(table).select("slug").eq("slug", candidate).limit(1);
+  const normalized = slugifyProject(preferred?.trim() || base) || "untitled-project";
+  for (let i = 0; i < 50; i++) {
+    const candidate = i === 0 ? normalized : `${normalized}-${i + 1}`;
+    const { data, error } = await client.database.from("published_projects").select("slug").eq("slug", candidate).limit(1);
     if (error) return candidate;
     const row = Array.isArray(data) ? data[0] : data;
     if (!row) return candidate;
-    index += 1;
   }
   return `${normalized}-${Date.now()}`;
 }
 
-export async function PATCH(request: Request) {
+export async function GET() {
   const admin = await requireAdminSession();
-  if (!admin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const client = createInsForgeServerClient(admin.session.accessToken);
+  const [{ data: queueData, error: queueErr }, publishedResult] = await Promise.all([
+    client.database.from("admin_publishing_queue").select(queueSelect).order("updated_at", { ascending: false }).limit(100),
+    client.database
+      .from("published_projects")
+      .select("slug, title, category, published_at, hero_image_url, professional_slug, editorial_status, archived_at")
+      .neq("editorial_status", "archived")
+      .order("published_at", { ascending: false })
+      .limit(200),
+  ]);
+
+  let publishedData = publishedResult.data;
+  let pubErr = publishedResult.error;
+  if (pubErr) {
+    const fallback = await client.database
+      .from("published_projects")
+      .select("slug, title, category, published_at, hero_image_url, professional_slug")
+      .order("published_at", { ascending: false })
+      .limit(200);
+    publishedData = (fallback.data ?? []).map((row) => ({
+      ...row,
+      editorial_status: null,
+      archived_at: null,
+    }));
+    pubErr = fallback.error;
   }
 
-  let payloadJson: unknown;
+  if (queueErr) return NextResponse.json({ error: queueErr.message }, { status: 400 });
+
+  const queue = (queueData ?? []).filter((row) => {
+    const r = row as { status?: string; content_type?: string };
+    return r.content_type === "project" && r.status !== "deleted" && r.status !== "archived";
+  });
+
+  return NextResponse.json({
+    queue,
+    published: publishedData ?? [],
+    publishedWarning: pubErr?.message ?? null,
+  });
+}
+
+export async function POST(request: Request) {
+  const admin = await requireAdminSession();
+  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  let body: unknown;
   try {
-    payloadJson = await request.json();
+    body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const parsed = patchSchema.safeParse(payloadJson);
+  const parsed = saveSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json({ error: formatZodIssues(parsed.error) }, { status: 400 });
+  }
+
+  const client = createInsForgeServerClient(admin.session.accessToken);
+  const mapped = rowFromForm(parsed.data.form);
+  const now = new Date().toISOString();
+
+  const { data, error } = await client.database.from("admin_publishing_queue").insert([
+    {
+      content_type: "project",
+      status: QUEUE_STATUS.DRAFT,
+      title: mapped.title,
+      source_text: parsed.data.form.narrative,
+      form_data: mapped.form_data,
+      image_urls: mapped.image_urls,
+      video_links: mapped.video_links,
+      taxonomy_name: mapped.taxonomy_name,
+      taxonomy_kind: mapped.taxonomy_kind,
+      layout_blocks: [],
+      media: { images: mapped.image_urls, videos: mapped.video_links },
+      updated_at: now,
+    },
+  ]);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  const row = Array.isArray(data) ? data[0] : data;
+  const id = (row as { id?: string } | null)?.id;
+  return NextResponse.json({ ok: true, id });
+}
+
+export async function PATCH(request: Request) {
+  const admin = await requireAdminSession();
+  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const parsed = patchSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: formatZodIssues(parsed.error) }, { status: 400 });
   }
 
   const client = createInsForgeServerClient(admin.session.accessToken);
@@ -178,111 +185,132 @@ export async function PATCH(request: Request) {
     .limit(1);
   if (getErr) return NextResponse.json({ error: getErr.message }, { status: 400 });
   const row = Array.isArray(rows) ? rows[0] : rows;
-  if (!row) return NextResponse.json({ error: "Queue entry not found" }, { status: 404 });
+  if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const mergedFormData = { ...(row.form_data ?? {}), ...(parsed.data.formData ?? {}) };
-  const nextTitle = parsed.data.title ?? row.title;
-  const nextType = parsed.data.contentType ?? row.content_type;
-  const sourceText = parsed.data.sourceText ?? row.source_text ?? "";
-  const sourcePdfUrl = parsed.data.sourcePdfUrl || row.source_pdf_url || null;
-  const imageUrls = parsed.data.imageUrls ?? row.image_urls ?? [];
-  const videoLinks = parsed.data.videoLinks ?? row.video_links ?? [];
-  const taxonomyName = parsed.data.taxonomyName?.trim() || row.taxonomy_name || null;
-  const taxonomyKind = parsed.data.taxonomyKind || row.taxonomy_kind || null;
-  const isTrending = parsed.data.isTrending ?? Boolean(row.is_trending);
-  const nextLayoutBlocks = normalizeLayoutBlocks(parsed.data.layoutBlocks ?? row.layout_blocks ?? []);
-  const pdfUrls = sourcePdfUrl ? [sourcePdfUrl] : [];
+  const action = parsed.data.action ?? "save";
   const now = new Date().toISOString();
+
+  if (action === "delete") {
+    const slug = row.published_slug as string | null;
+    await client.database.from("admin_publishing_queue").delete().eq("id", row.id);
+    if (slug) {
+      const { data: pubRows } = await client.database
+        .from("published_projects")
+        .select("professional_id")
+        .eq("slug", slug)
+        .limit(1);
+      const pub = Array.isArray(pubRows) ? pubRows[0] : pubRows;
+      await client.database.from("published_projects").delete().eq("slug", slug);
+      const proId = (pub as { professional_id?: string } | null)?.professional_id;
+      if (proId) await syncProfessionalProjectCount(admin.session.accessToken, proId);
+    }
+    revalidatePath("/");
+    revalidatePath("/projects");
+    if (slug) revalidatePath(`/projects/${slug}`);
+    revalidatePath("/professionals");
+    return NextResponse.json({ ok: true });
+  }
+
+  const schema = action === "publish" ? projectPublishFormSchema : projectPublishDraftSchema;
+  const formParsed = schema.safeParse(parsed.data.form);
+  if (!formParsed.success) {
+    return NextResponse.json({ error: formatZodIssues(formParsed.error) }, { status: 400 });
+  }
+  const form = formParsed.data;
+
+  const mapped = rowFromForm(form);
   const payload: Record<string, unknown> = {
-    content_type: nextType,
-    status: parsed.data.status ?? row.status,
-    title: nextTitle,
-    source_text: sourceText,
-    source_pdf_url: sourcePdfUrl,
-    form_data: mergedFormData,
-    image_urls: imageUrls,
-    video_links: videoLinks,
-    layout_blocks: nextLayoutBlocks,
-    taxonomy_name: taxonomyName,
-    taxonomy_kind: taxonomyKind,
-    is_trending: isTrending,
-    media: { images: imageUrls, videos: videoLinks, pdfs: pdfUrls },
+    title: mapped.title,
+    form_data: mapped.form_data,
+    image_urls: mapped.image_urls,
+    video_links: mapped.video_links,
+    taxonomy_name: mapped.taxonomy_name,
+    taxonomy_kind: "professional",
+    source_text: form.narrative,
+    status: action === "publish" ? QUEUE_STATUS.PUBLISHED : QUEUE_STATUS.DRAFT,
     updated_at: now,
   };
 
-  const shouldPublish = parsed.data.action === "publish";
-  let publishedUrl: string | null = null;
-  let publishedSlug: string | null = null;
-  if (shouldPublish) {
-    const baseSlug = slugifyProject(String(mergedFormData.projectName ?? nextTitle ?? "untitled-entry"));
-    if (nextType === "student") {
-      publishedSlug = await uniqueSlug(client, "published_students", baseSlug);
-      publishedUrl = "/awards";
-      await client.database.from("published_students").upsert(
-        [
-          {
-            slug: publishedSlug,
-            title: nextTitle,
-            excerpt: (mergedFormData.shortText as string | undefined) ?? sourceText.slice(0, 220),
-            content: (mergedFormData.longText as string | undefined) ?? sourceText,
-            school_name: (mergedFormData.architectureFirm as string | undefined) ?? null,
-            image_urls: imageUrls,
-            video_links: videoLinks,
-            form_data: mergedFormData,
-            layout_blocks: nextLayoutBlocks,
-            media: { images: imageUrls, videos: videoLinks },
-            source_queue_id: row.id,
-            updated_at: now,
-            published_at: now,
-          },
-        ],
-        { onConflict: "slug" },
-      );
-    } else {
-      publishedSlug = await uniqueSlug(client, "published_projects", baseSlug);
-      publishedUrl = `/projects/${publishedSlug}`;
-      const professional =
-        taxonomyName && (taxonomyKind === "professional" || !taxonomyKind)
-          ? await upsertProfessionalByName(admin.session.accessToken, taxonomyName)
-          : null;
-      await client.database.from("published_projects").upsert(
-        [
-          {
-            slug: publishedSlug,
-            title: nextTitle,
-            excerpt: (mergedFormData.shortText as string | undefined) ?? sourceText.slice(0, 220),
-            content: (mergedFormData.longText as string | undefined) ?? sourceText,
-            category: "Architecture & Design",
-            location: (mergedFormData.projectLocation as string | undefined) ?? null,
-            byline: (mergedFormData.architectureFirm as string | undefined)
-              ? `By ${(mergedFormData.architectureFirm as string).trim()}`
-              : null,
-            hero_image_url:
-              (mergedFormData.coverImageUrl as string | undefined) ?? (imageUrls[0] as string | undefined) ?? null,
-            image_urls: imageUrls,
-            video_links: videoLinks,
-            external_links: [],
-            form_data: mergedFormData,
-            layout_blocks: nextLayoutBlocks,
-            professional_slug: professional?.slug ?? null,
-            professional_id: professional?.id ?? null,
-            is_trending: isTrending,
-            media: { images: imageUrls, videos: videoLinks, pdfs: pdfUrls },
-            updated_at: now,
-            published_at: now,
-          },
-        ],
-        { onConflict: "slug" },
-      );
+  let publishedUrl: string | null = row.published_url as string | null;
+  let publishedSlug: string | null = row.published_slug as string | null;
+
+  if (action === "publish") {
+    if (!form.coverImageUrl?.trim()) {
+      return NextResponse.json({ error: "Hero image is required." }, { status: 400 });
     }
-    payload.status = "published";
+    if (
+      form.architectMode === "existing" &&
+      !form.professionalId &&
+      !form.architectStaticSlug?.trim()
+    ) {
+      return NextResponse.json({ error: "Select an existing architect or create a new one." }, { status: 400 });
+    }
+    if (form.architectMode === "new" && !form.architectureFirm?.trim()) {
+      return NextResponse.json({ error: "Architecture firm name is required for a new architect." }, { status: 400 });
+    }
+
+    const resolved = await resolveProfessionalForPublish(admin.session.accessToken, form);
+    if (!resolved.ok) {
+      return NextResponse.json({ error: resolved.message }, { status: 400 });
+    }
+    const professional = resolved.professional;
+
+    const preferredSlug = form.slug?.trim() || form.projectName;
+    publishedSlug =
+      publishedSlug ??
+      (await uniqueSlug(client, form.projectName, preferredSlug));
+    publishedUrl = `/projects/${publishedSlug}`;
+
+    const firmLabel = professional.firm || (form.architectureFirm ?? "").trim();
+    const leadLabel = professional.name || (form.leadArchitect ?? "").trim();
+
+    await client.database.from("published_projects").upsert(
+      [
+        {
+          slug: publishedSlug,
+          title: form.projectName,
+          excerpt: form.dek,
+          content: form.narrative,
+          category: form.category,
+          location: form.projectLocation,
+          byline: `By ${firmLabel}`,
+          hero_image_url: form.coverImageUrl,
+          image_urls: mapped.image_urls,
+          video_links: mapped.video_links,
+          external_links: [],
+          form_data: {
+            ...mapped.form_data,
+            architectureFirm: firmLabel,
+            leadArchitect: leadLabel,
+            professionalId: professional.id,
+            slug: publishedSlug,
+          },
+          layout_blocks: [],
+          professional_slug: professional.slug,
+          professional_id: professional.id,
+          is_trending: false,
+          is_featured_home: false,
+          editorial_status: "published",
+          archived_at: null,
+          media: { images: mapped.image_urls, videos: mapped.video_links },
+          updated_at: now,
+          published_at: now,
+        },
+      ],
+      { onConflict: "slug" },
+    );
+
+    await syncProfessionalProjectCount(admin.session.accessToken, professional.id);
+
     payload.published_slug = publishedSlug;
     payload.published_url = publishedUrl;
     payload.published_at = now;
-    revalidatePath("/projects");
-    revalidatePath("/professionals");
+
     revalidatePath("/");
-    revalidatePath("/awards");
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${publishedSlug}`);
+    revalidatePath("/professionals");
+    revalidatePath(`/professionals/${professional.slug}`);
   }
 
   const { error } = await client.database.from("admin_publishing_queue").update(payload).eq("id", row.id);
@@ -291,10 +319,10 @@ export async function PATCH(request: Request) {
   await logAdminAction({
     accessToken: admin.session.accessToken,
     adminUserId: admin.session.user.id,
-    action: shouldPublish ? "publishing_published" : "publishing_saved",
+    action: action === "publish" ? "publishing_published" : "publishing_saved",
     entityType: "admin_publishing_queue",
     entityId: row.id,
-    payload: { contentType: nextType, publishedUrl },
+    payload: { publishedUrl },
   });
 
   return NextResponse.json({ ok: true, publishedUrl, publishedSlug });

@@ -1,951 +1,949 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { PublishingQueueEditFields } from "@/components/admin/publishing-queue-edit-fields";
-import { LayoutBlockBuilder } from "@/components/admin/layout-block-builder";
-import { type LayoutBlock, normalizeLayoutBlocks } from "@/lib/layout-blocks";
-import type { SubmissionFormData } from "@/lib/submission-template";
+import Image from "next/image";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type ArchitectOption,
+  architectOptionValue,
+  buildArchitectOptions,
+  parseArchitectOptionValue,
+} from "@/lib/admin/architect-options";
+import { videoPreviewImage } from "@/lib/admin/media-preview";
+import { formatApiError } from "@/lib/admin/format-api-error";
+import {
+  emptyProjectPublishForm,
+  formFromPublishedRow,
+  formFromQueueRow,
+  PROJECT_CATEGORIES,
+  PROJECT_TYPES,
+  validatePublishForm,
+  type ProjectPublishDraft,
+} from "@/lib/admin/project-publish-schema";
+import { MediaUploadPanel } from "@/components/admin/media-upload-panel";
+import { PublishedProjectsPanel } from "@/components/admin/published-projects-panel";
+import { ArchitectPicker } from "@/components/admin/architect-picker";
+import { LocationCombobox } from "@/components/admin/location-combobox";
+import type { ProfessionalRow } from "@/lib/professionals-db";
+import { getArchitectBySlug } from "@/lib/architects";
+import { slugifyProject } from "@/lib/submission-template";
 
-const fieldInput =
+const PRODUCTION_SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.theninthedition.com").replace(
+  /\/$/,
+  "",
+);
+
+const input =
   "w-full rounded-lg border border-primary/20 bg-white px-3 py-2.5 text-sm text-charcoal shadow-sm outline-none transition placeholder:text-muted/60 focus:border-primary/45 focus:ring-2 focus:ring-primary/15";
-
-const INGEST_STEPS = [
-  {
-    step: 1 as const,
-    title: "Build details",
-    description: "Content type plus year, area, and location—mirrors the public project sidebar.",
-  },
-  {
-    step: 2 as const,
-    title: "Narrative & media",
-    description: "Paste the email body, wire URLs, and bulk-upload imagery or PDFs.",
-  },
-  {
-    step: 3 as const,
-    title: "Taxonomy",
-    description: "Pick architect or company; new names are created automatically on publish.",
-  },
-  {
-    step: 4 as const,
-    title: "Promotion",
-    description: "Optional catalog PDF and homepage trending flag before you queue the item.",
-  },
-];
 
 type QueueRow = {
   id: string;
-  content_type: "project" | "student";
-  source_text: string;
-  source_pdf_url: string | null;
   title: string;
-  status: "pending" | "review" | "published";
-  created_at: string;
-  updated_at?: string;
-  form_data: Partial<SubmissionFormData>;
+  status: string;
+  form_data: Record<string, unknown> | null;
   image_urls: string[];
   video_links: string[];
-  layout_blocks?: LayoutBlock[];
-  taxonomy_name?: string | null;
-  taxonomy_kind?: "professional" | "company" | null;
-  is_trending?: boolean;
   published_slug?: string | null;
   published_url?: string | null;
 };
 
-type TaxonomyOption = { id: string; slug: string; name?: string; firm?: string };
+type PublishedRow = {
+  slug: string;
+  title: string;
+  category: string;
+  hero_image_url?: string | null;
+};
 
-const statuses: QueueRow["status"][] = ["pending", "review", "published"];
+function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-xl border border-primary/12 bg-white/90 p-5 shadow-sm">
+      <h3 className="font-serif text-lg text-charcoal">{title}</h3>
+      {hint ? <p className="mt-1 text-xs leading-relaxed text-muted">{hint}</p> : null}
+      <div className="mt-4 space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="text-xs font-semibold uppercase tracking-[0.1em] text-muted">{label}</label>
+      {hint ? <p className="mt-0.5 text-[11px] text-muted/90">{hint}</p> : null}
+      <div className="mt-2">{children}</div>
+    </div>
+  );
+}
 
 export function SubmissionsTable() {
   const [rows, setRows] = useState<QueueRow[]>([]);
+  const [published, setPublished] = useState<PublishedRow[]>([]);
+  const [professionals, setProfessionals] = useState<ProfessionalRow[]>([]);
+  const [architectOptions, setArchitectOptions] = useState<ArchitectOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [active, setActive] = useState<QueueRow | null>(null);
+  const [activeId, setActiveId] = useState<string | "new">("new");
+  const [form, setForm] = useState<ProjectPublishDraft>(emptyProjectPublishForm());
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [kindFilter, setKindFilter] = useState<"all" | "project" | "student">("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | QueueRow["status"]>("all");
-  const [query, setQuery] = useState("");
-  const [uploadingFiles, setUploadingFiles] = useState(false);
-  const [builderStep, setBuilderStep] = useState<1 | 2 | 3 | 4>(1);
-  const [professionals, setProfessionals] = useState<TaxonomyOption[]>([]);
-  const [companies, setCompanies] = useState<TaxonomyOption[]>([]);
-  const [newEntry, setNewEntry] = useState({
-    contentType: "project" as "project" | "student",
-    sourceText: "",
-    sourcePdfUrl: "",
-    imageUrlsText: "",
-    videoLinksText: "",
-    projectYear: "",
-    grossArea: "",
-    projectLocation: "",
-    taxonomyName: "",
-    taxonomyKind: "professional" as "professional" | "company",
-    isTrending: false,
-  });
-  const [dragActive, setDragActive] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+  const [galleryUrlInput, setGalleryUrlInput] = useState("");
+  const [heroUrlInput, setHeroUrlInput] = useState("");
+  const [heroReady, setHeroReady] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
+  const [faqDraft, setFaqDraft] = useState([{ question: "", answer: "" }]);
+  const [uploadingHero, setUploadingHero] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [uploadingProfessionalImage, setUploadingProfessionalImage] = useState(false);
+  const [professionalImageUrlInput, setProfessionalImageUrlInput] = useState("");
+  const [professionalImageUploadError, setProfessionalImageUploadError] = useState<string | null>(null);
+  const [heroUploadError, setHeroUploadError] = useState<string | null>(null);
+  const [galleryUploadError, setGalleryUploadError] = useState<string | null>(null);
+  const [importingVideo, setImportingVideo] = useState(false);
+  const [workspaceTab, setWorkspaceTab] = useState<"drafts" | "published">("drafts");
 
-  async function load() {
+  const architectSelectOptions = useMemo(
+    () => [
+      { value: "__new__", label: "+ Create new architect / firm", hint: "New profile with optional social links" },
+      ...architectOptions.map((opt) => ({
+        value: architectOptionValue(opt),
+        label: `${opt.firm} (${opt.name})`,
+        hint: opt.kind === "static" ? "Site directory" : "Database profile",
+      })),
+    ],
+    [architectOptions],
+  );
+
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      const res = await fetch("/api/admin/submissions");
-      const data = (await res.json()) as {
-        queue?: QueueRow[];
-        error?: string;
-      };
-      if (!res.ok) {
-        setError(data.error ?? "Failed to load publishing queue");
-        setLoading(false);
-        return;
-      }
-      setRows(data.queue ?? []);
-    } catch {
-      setError("Network error");
-    } finally {
-      setLoading(false);
+    const [subRes, taxRes, pubRes] = await Promise.all([
+      fetch("/api/admin/submissions"),
+      fetch("/api/admin/taxonomy"),
+      fetch("/api/admin/published-projects"),
+    ]);
+    const subData = (await subRes.json()) as {
+      queue?: QueueRow[];
+      published?: PublishedRow[];
+      publishedWarning?: string | null;
+      error?: string;
+    };
+    const taxData = (await taxRes.json()) as {
+      professionals?: ProfessionalRow[];
+      architectOptions?: ArchitectOption[];
+    };
+    const pubData = (await pubRes.json()) as { published?: PublishedRow[]; error?: string };
+
+    if (taxRes.ok) {
+      const pros = taxData.professionals ?? [];
+      setProfessionals(pros);
+      setArchitectOptions(taxData.architectOptions ?? buildArchitectOptions(pros));
     }
-  }
+    if (!subRes.ok) {
+      setError(subData.error ?? "Could not load submissions");
+      setRows([]);
+    } else {
+      setRows(subData.queue ?? []);
+    }
+    if (pubRes.ok) {
+      setPublished(pubData.published ?? subData.published ?? []);
+    } else if (subRes.ok) {
+      setPublished(subData.published ?? []);
+      if (pubData.error) setError(pubData.error);
+    } else {
+      setPublished([]);
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
 
-  useEffect(() => {
-    queueMicrotask(() => {
-      void (async () => {
-        const res = await fetch("/api/admin/taxonomy");
-        const data = (await res.json()) as {
-          professionals?: TaxonomyOption[];
-          companies?: TaxonomyOption[];
-        };
-        if (!res.ok) return;
-        setProfessionals(data.professionals ?? []);
-        setCompanies(data.companies ?? []);
-      })();
-    });
-  }, []);
+  const slugPreview = useMemo(() => {
+    const custom = form.slug?.trim();
+    if (custom) return slugifyProject(custom);
+    return slugifyProject(form.projectName || "project-title");
+  }, [form.slug, form.projectName]);
 
-  async function createEntry() {
-    setError(null);
-    const metadataLines = [
-      newEntry.projectYear ? `Completion Year: ${newEntry.projectYear}` : "",
-      newEntry.grossArea ? `Gross Built Area: ${newEntry.grossArea}` : "",
-      newEntry.projectLocation ? `Project location: ${newEntry.projectLocation}` : "",
-    ].filter(Boolean);
-    const payload = {
-      contentType: newEntry.contentType,
-      sourceText: [newEntry.sourceText, ...metadataLines].filter(Boolean).join("\n"),
-      sourcePdfUrl: newEntry.sourcePdfUrl || undefined,
-      imageUrls: newEntry.imageUrlsText
-        .split("\n")
-        .map((v) => v.trim())
-        .filter(Boolean),
-      videoLinks: newEntry.videoLinksText
-        .split("\n")
-        .map((v) => v.trim())
-        .filter(Boolean),
-      taxonomyName: newEntry.taxonomyName || undefined,
-      taxonomyKind: newEntry.taxonomyKind,
-      isTrending: newEntry.isTrending,
-    };
-    const res = await fetch("/api/admin/submissions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = (await res.json()) as { error?: string };
-    if (!res.ok) {
-      setError(data.error ?? "Could not create publishing entry.");
-      return;
-    }
-    setNewEntry({
-      contentType: "project",
-      sourceText: "",
-      sourcePdfUrl: "",
-      imageUrlsText: "",
-      videoLinksText: "",
-      projectYear: "",
-      grossArea: "",
-      projectLocation: "",
-      taxonomyName: "",
-      taxonomyKind: "professional",
-      isTrending: false,
-    });
-    await load();
+  const publishUrl = `${PRODUCTION_SITE_URL}/projects/${slugPreview || "project-title"}`;
+
+  const activeQueueRow = useMemo(
+    () => (activeId === "new" ? null : rows.find((r) => r.id === activeId) ?? null),
+    [activeId, rows],
+  );
+
+  const editingPublishedSlug = activeQueueRow?.published_slug ?? null;
+
+  const architectSelectValue = useMemo(() => {
+    if (form.architectMode === "new") return "__new__";
+    if (form.professionalId) return `db:${form.professionalId}`;
+    if (form.architectStaticSlug) return `static:${form.architectStaticSlug}`;
+    return "__new__";
+  }, [form.architectMode, form.professionalId, form.architectStaticSlug]);
+
+  const videoThumb = useMemo(() => videoPreviewImage(form.videoUrl ?? ""), [form.videoUrl]);
+
+  function patch<K extends keyof ProjectPublishDraft>(key: K, value: ProjectPublishDraft[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function uploadFiles(files: FileList | null) {
-    if (!files || files.length === 0) return;
-    setUploadingFiles(true);
+  function patchSocial(key: keyof NonNullable<ProjectPublishDraft["professionalSocials"]>, value: string) {
+    setForm((prev) => ({
+      ...prev,
+      professionalSocials: { ...(prev.professionalSocials ?? {}), [key]: value },
+    }));
+  }
+
+  function selectRow(row: QueueRow | null) {
+    if (!row) {
+      setActiveId("new");
+      setForm(emptyProjectPublishForm());
+      setGalleryUrls([]);
+      setHeroUrlInput("");
+      setHeroReady(false);
+      setVideoReady(false);
+      setFaqDraft([{ question: "", answer: "" }]);
+      return;
+    }
+    setActiveId(row.id);
+    const mapped = formFromQueueRow({
+      title: row.title,
+      form_data: row.form_data,
+      image_urls: row.image_urls,
+      video_links: row.video_links,
+      published_slug: row.published_slug,
+    });
+    setForm(mapped);
+    const hero = mapped.coverImageUrl;
+    setGalleryUrls((mapped.galleryUrls ?? []).filter((u) => u !== hero));
+    setHeroReady(Boolean(hero));
+    setVideoReady(Boolean(mapped.videoUrl));
+    setFaqDraft(mapped.faq?.length ? mapped.faq : [{ question: "", answer: "" }]);
+  }
+
+  function selectArchitect(value: string) {
+    if (value === "__new__") {
+      setForm((prev) => ({
+        ...prev,
+        architectMode: "new",
+        professionalId: "",
+        architectStaticSlug: "",
+      }));
+      return;
+    }
+    const parsed = parseArchitectOptionValue(value);
+    if (!parsed) return;
+    if (parsed.kind === "db") {
+      const pro = professionals.find((p) => p.id === parsed.id);
+      if (!pro) return;
+      setForm((prev) => ({
+        ...prev,
+        architectMode: "existing",
+        professionalId: pro.id,
+        architectStaticSlug: "",
+        architectureFirm: pro.firm,
+        leadArchitect: pro.name,
+        professionalImageUrl: pro.image_url ?? "",
+      }));
+      return;
+    }
+    const opt = architectOptions.find((o) => o.kind === "static" && o.slug === parsed.slug);
+    if (!opt || opt.kind !== "static") return;
+    const catalog = getArchitectBySlug(opt.slug);
+    setForm((prev) => ({
+      ...prev,
+      architectMode: "existing",
+      professionalId: "",
+      architectStaticSlug: opt.slug,
+      architectureFirm: opt.firm,
+      leadArchitect: opt.name,
+      professionalImageUrl: catalog?.image ?? "",
+    }));
+  }
+
+  function buildPayload(): ProjectPublishDraft {
+    const faq = faqDraft.filter((f) => f.question.trim() && f.answer.trim());
+    return {
+      ...form,
+      slug: slugPreview,
+      galleryUrls: galleryUrls.slice(0, 25),
+      faq: faq.length ? faq : form.faq,
+    };
+  }
+
+  async function uploadFiles(files: FileList | null, target: "hero" | "gallery" | "professional") {
+    if (!files?.length) return;
+    const setBusy =
+      target === "hero"
+        ? setUploadingHero
+        : target === "gallery"
+          ? setUploadingGallery
+          : setUploadingProfessionalImage;
+    const setUploadErr =
+      target === "hero"
+        ? setHeroUploadError
+        : target === "gallery"
+          ? setGalleryUploadError
+          : setProfessionalImageUploadError;
+    setBusy(true);
+    setUploadErr(null);
     setError(null);
     try {
-      const textChunks = await Promise.all(
-        Array.from(files)
-          .filter((file) => file.type === "text/plain")
-          .map((file) => file.text().catch(() => "")),
-      );
-      if (textChunks.length) {
-        setNewEntry((prev) => ({
-          ...prev,
-          sourceText: [prev.sourceText, ...textChunks.filter(Boolean)].filter(Boolean).join("\n\n"),
-        }));
-      }
-      const form = new FormData();
-      Array.from(files).forEach((file) => form.append("files", file));
+      const body = new FormData();
+      Array.from(files).forEach((f) => body.append("files", f));
       const res = await fetch("/api/admin/publishing/media", {
         method: "POST",
-        body: form,
+        body,
+        credentials: "same-origin",
       });
-      const data = (await res.json()) as { urls?: string[]; error?: string };
+      const data = (await res.json().catch(() => ({}))) as { urls?: string[]; error?: string };
       if (!res.ok) {
-        setError(data.error ?? "Could not upload files.");
+        const msg = formatApiError(data) || "Upload failed";
+        setUploadErr(msg);
+        setError(msg);
         return;
       }
       const urls = data.urls ?? [];
-      const images = urls.filter((url) => !url.toLowerCase().endsWith(".mp4") && !url.toLowerCase().endsWith(".webm"));
-      const videos = urls.filter((url) => url.toLowerCase().endsWith(".mp4") || url.toLowerCase().endsWith(".webm"));
-      const firstPdf = urls.find((url) => url.toLowerCase().endsWith(".pdf"));
-      setNewEntry((prev) => ({
-        ...prev,
-        sourcePdfUrl: firstPdf ? firstPdf : prev.sourcePdfUrl,
-        imageUrlsText: [prev.imageUrlsText, ...images].filter(Boolean).join("\n"),
-        videoLinksText: [prev.videoLinksText, ...videos].filter(Boolean).join("\n"),
-      }));
+      if (!urls.length) {
+        const msg = "Upload returned no image URL. Check that the submission-media bucket exists and is public.";
+        setUploadErr(msg);
+        setError(msg);
+        return;
+      }
+      if (target === "hero" && urls[0]) {
+        patch("coverImageUrl", urls[0]);
+        setHeroReady(true);
+        setHeroUrlInput("");
+        setSaveMessage("Hero image uploaded.");
+      }
+      if (target === "gallery") {
+        setGalleryUrls((prev) => [...prev, ...urls].slice(0, 25));
+        setSaveMessage(`${urls.length} image(s) added to gallery.`);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Upload failed";
+      setUploadErr(msg);
+      setError(msg);
     } finally {
-      setUploadingFiles(false);
+      setBusy(false);
     }
   }
 
-  async function updateStatus(id: string, status: QueueRow["status"]) {
+  async function importUrl(url: string, target: "hero" | "gallery" | "professional") {
+    const trimmed = url.trim();
+    if (!trimmed) return;
+    setError(null);
+    const res = await fetch("/api/admin/media/import-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: trimmed, kind: "image" }),
+    });
+    const data = (await res.json()) as { url?: string; error?: string };
+    if (!res.ok) {
+      setError(data.error ?? "Could not use URL");
+      return;
+    }
+    const resolved = data.url ?? trimmed;
+    if (target === "hero") {
+      patch("coverImageUrl", resolved);
+      setHeroReady(true);
+      setHeroUrlInput("");
+    } else if (target === "gallery") {
+      setGalleryUrls((prev) => [...prev, resolved].slice(0, 25));
+      setGalleryUrlInput("");
+    } else {
+      patch("professionalImageUrl", resolved);
+      setProfessionalImageUrlInput("");
+    }
+  }
+
+  async function importVideoUrl(url: string) {
+    const trimmed = url.trim();
+    if (!trimmed) return;
+    setImportingVideo(true);
+    setError(null);
+    const res = await fetch("/api/admin/media/import-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: trimmed, kind: "video" }),
+    });
+    const data = (await res.json()) as { url?: string; error?: string };
+    setImportingVideo(false);
+    if (!res.ok) {
+      setError(data.error ?? "Could not use video URL");
+      setVideoReady(false);
+      return;
+    }
+    patch("videoUrl", data.url ?? trimmed);
+    setVideoReady(true);
+  }
+
+  async function saveDraft() {
+    if (!form.projectName.trim()) {
+      setError("Add a project title before saving.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    setSaveMessage(null);
+    const res = await fetch("/api/admin/submissions", {
+      method: activeId === "new" ? "POST" : "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: activeId === "new" ? undefined : activeId, form: buildPayload(), action: "save" }),
+    });
+    const data = (await res.json()) as { error?: string; id?: string };
+    setSaving(false);
+    if (!res.ok) {
+      setError(formatApiError(data));
+      return;
+    }
+    if (activeId === "new" && data.id) setActiveId(data.id);
+    setSaveMessage("Draft saved. You can continue editing and publish when ready.");
+    await load();
+  }
+
+  async function publish() {
+    const payload = buildPayload();
+    const check = validatePublishForm(payload);
+    if (!check.ok) {
+      setError(`Complete these before publishing:\n${check.message}`);
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    setSaveMessage(null);
+    let id = activeId;
+    if (id === "new") {
+      const draftRes = await fetch("/api/admin/submissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ form: payload, action: "save" }),
+      });
+      const draftData = (await draftRes.json()) as { id?: string; error?: string };
+      if (!draftRes.ok || !draftData.id) {
+        setSaving(false);
+        setError(formatApiError(draftData) || "Save before publishing");
+        return;
+      }
+      id = draftData.id;
+      setActiveId(id);
+    }
     const res = await fetch("/api/admin/submissions", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status, action: "save" }),
+      body: JSON.stringify({ id, form: payload, action: "publish" }),
     });
-    if (res.ok) {
-      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    const data = (await res.json()) as { publishedUrl?: string; error?: string };
+    setSaving(false);
+    if (!res.ok) {
+      setError(formatApiError(data) || "Publish failed");
+      return;
+    }
+    setSaveMessage("Published successfully.");
+    await load();
+    if (data.publishedUrl) {
+      const path = data.publishedUrl.startsWith("/") ? data.publishedUrl : `/${data.publishedUrl}`;
+      window.open(`${PRODUCTION_SITE_URL}${path}`, "_blank");
     }
   }
 
-  async function saveActive(action: "save" | "publish") {
-    if (!active) return;
+  async function deletePublished(slug: string) {
+    if (
+      !confirm(
+        `Remove "${slug}" from the live site?\n\nThis deletes the published page from /projects, homepage Latest Projects, and architect portfolios. Built-in catalog projects (static) are not affected.`,
+      )
+    ) {
+      return;
+    }
     setSaving(true);
-    try {
-      const res = await fetch("/api/admin/submissions", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: active.id,
-          status: active.status,
-          contentType: active.content_type,
-          title: active.title,
-          sourceText: active.source_text,
-          sourcePdfUrl: active.source_pdf_url ?? undefined,
-          formData: active.form_data ?? {},
-          imageUrls: active.image_urls ?? [],
-          videoLinks: active.video_links ?? [],
-          taxonomyName: active.taxonomy_name ?? undefined,
-          taxonomyKind: active.taxonomy_kind ?? undefined,
-          isTrending: active.is_trending ?? false,
-          layoutBlocks: active.layout_blocks ?? [],
-          action,
-        }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(data.error ?? "Save failed");
-        return;
+    setError(null);
+    const res = await fetch("/api/admin/published-projects", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug }),
+    });
+    const data = (await res.json()) as { error?: string };
+    setSaving(false);
+    if (!res.ok) {
+      setError(typeof data.error === "string" ? data.error : "Could not delete project");
+      return;
+    }
+    if (editingPublishedSlug === slug || slugPreview === slug) {
+      if (activeId !== "new") selectRow(null);
+      else setForm(emptyProjectPublishForm());
+    }
+    await load();
+  }
+
+  async function deleteDraft() {
+    if (activeId === "new") return;
+    const row = rows.find((r) => r.id === activeId);
+    const label = row?.title ?? "this draft";
+    if (row?.published_slug) {
+      await deletePublished(row.published_slug);
+      return;
+    }
+    if (!confirm(`Delete draft "${label}"? This cannot be undone.`)) return;
+    setSaving(true);
+    setError(null);
+    const res = await fetch("/api/admin/submissions", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: activeId, action: "delete" }),
+    });
+    const data = (await res.json()) as { error?: string };
+    setSaving(false);
+    if (!res.ok) {
+      setError(typeof data.error === "string" ? data.error : "Could not delete draft");
+      return;
+    }
+    selectRow(null);
+    await load();
+  }
+
+  async function loadPublishedForEdit(slug: string) {
+    setSaving(true);
+    setError(null);
+    const res = await fetch(`/api/admin/published-projects?slug=${encodeURIComponent(slug)}`);
+    const data = (await res.json()) as { project?: Record<string, unknown>; error?: string };
+    setSaving(false);
+    if (!res.ok || !data.project) {
+      setError(data.error ?? "Could not load published project");
+      return;
+    }
+    const row = data.project;
+    const mapped = formFromPublishedRow({
+      slug: String(row.slug),
+      title: String(row.title),
+      form_data: (row.form_data as Record<string, unknown>) ?? {},
+      image_urls: Array.isArray(row.image_urls) ? (row.image_urls as string[]) : [],
+      video_links: Array.isArray(row.video_links) ? (row.video_links as string[]) : [],
+      hero_image_url: (row.hero_image_url as string | null) ?? null,
+      location: (row.location as string | null) ?? null,
+      category: (row.category as string | null) ?? null,
+      excerpt: (row.excerpt as string | null) ?? null,
+      content: (row.content as string | null) ?? null,
+    });
+    const linked = rows.find((r) => r.published_slug === slug);
+    if (linked) {
+      selectRow(linked);
+    } else {
+      setActiveId("new");
+      setForm(mapped);
+      const hero = mapped.coverImageUrl;
+      setGalleryUrls((mapped.galleryUrls ?? []).filter((u) => u !== hero));
+      setHeroReady(Boolean(hero));
+      setVideoReady(Boolean(mapped.videoUrl));
+      setFaqDraft(mapped.faq?.length ? mapped.faq : [{ question: "", answer: "" }]);
+    }
+    setWorkspaceTab("drafts");
+    setSaveMessage(`Editing published project “${slug}”. Save draft, then publish to update the live page.`);
+  }
+
+  async function deleteArchitect(id: string) {
+    if (!confirm("Remove this architect profile? Linked projects will be unlinked.")) return;
+    setSaving(true);
+    const res = await fetch("/api/admin/professionals", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    setSaving(false);
+    if (res.ok) {
+      if (form.professionalId === id) {
+        patch("architectMode", "new");
+        patch("professionalId", "");
       }
       await load();
-    } finally {
-      setSaving(false);
-    }
+    } else setError("Could not remove architect");
   }
-
-  async function featureOnHomepage() {
-    if (!active?.published_slug || active.content_type !== "project") return;
-    setSaving(true);
-    try {
-      const res = await fetch("/api/admin/projects", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slug: active.published_slug,
-          isFeaturedHome: true,
-        }),
-      });
-      if (!res.ok) setError("Could not update homepage feature draft.");
-      else setError(null);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  function activeFormField(key: keyof SubmissionFormData): string {
-    const value = active?.form_data?.[key];
-    return typeof value === "string" ? value : "";
-  }
-
-  function setActiveFormField(key: keyof SubmissionFormData, value: string) {
-    if (!active) return;
-    setActive({
-      ...active,
-      form_data: { ...(active.form_data ?? {}), [key]: value },
-    });
-  }
-
-  function activeFormValue<K extends keyof SubmissionFormData>(key: K): SubmissionFormData[K] | undefined {
-    if (!active) return undefined;
-    const v = active.form_data?.[key];
-    return v as SubmissionFormData[K] | undefined;
-  }
-
-  function setActiveFormValue<K extends keyof SubmissionFormData>(key: K, value: SubmissionFormData[K]) {
-    if (!active) return;
-    setActive({
-      ...active,
-      form_data: { ...(active.form_data ?? {}), [key]: value },
-    });
-  }
-
-  function projectNameDisplay(): string {
-    if (!active) return "";
-    const p = active.form_data?.projectName;
-    if (typeof p === "string" && p.trim()) return p;
-    return active.title;
-  }
-
-  function setProjectNameAndTitle(v: string) {
-    if (!active) return;
-    setActive({
-      ...active,
-      title: v,
-      form_data: { ...(active.form_data ?? {}), projectName: v },
-    });
-  }
-
-  function longTextDisplay(): string {
-    if (!active) return "";
-    const lt = active.form_data?.longText;
-    if (typeof lt === "string" && lt.trim()) return lt;
-    return active.source_text;
-  }
-
-  function setLongTextAndSource(v: string) {
-    if (!active) return;
-    setActive({
-      ...active,
-      source_text: v,
-      form_data: { ...(active.form_data ?? {}), longText: v },
-    });
-  }
-
-  const filteredRows = rows.filter((row) => {
-    const matchesKind = kindFilter === "all" ? true : row.content_type === kindFilter;
-    const matchesStatus = statusFilter === "all" ? true : row.status === statusFilter;
-    const q = query.trim().toLowerCase();
-    const matchesQuery = !q ? true : row.title.toLowerCase().includes(q) || row.id.toLowerCase().includes(q);
-    return matchesKind && matchesStatus && matchesQuery;
-  });
 
   return (
-    <div className="space-y-5">
-      {error ? (
-        <div
-          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-900 shadow-sm"
-          role="alert"
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-2 border-b border-primary/15 pb-4">
+        <button
+          type="button"
+          onClick={() => setWorkspaceTab("drafts")}
+          className={`rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] ${
+            workspaceTab === "drafts" ? "bg-primary text-white" : "border border-primary/25 text-primary"
+          }`}
         >
-          <span>{error}</span>
-          <button
-            type="button"
-            className="rounded-full border border-red-300/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-red-800 hover:bg-red-100/80"
-            onClick={() => setError(null)}
-          >
-            Dismiss
-          </button>
-        </div>
+          Drafts
+        </button>
+        <button
+          type="button"
+          onClick={() => setWorkspaceTab("published")}
+          className={`rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] ${
+            workspaceTab === "published" ? "bg-primary text-white" : "border border-primary/25 text-primary"
+          }`}
+        >
+          Published projects
+        </button>
+      </div>
+
+      {workspaceTab === "published" ? (
+        <PublishedProjectsPanel
+          draftRows={rows}
+          onEditDraft={(id) => {
+            const row = rows.find((r) => r.id === id);
+            if (row) {
+              setWorkspaceTab("drafts");
+              selectRow(row);
+            }
+          }}
+          onEditPublished={(slug) => void loadPublishedForEdit(slug)}
+        />
       ) : null}
 
-      <section className="overflow-hidden rounded-2xl border border-primary/12 bg-surface shadow-[0_24px_80px_-48px_rgba(28,28,28,0.35)]">
-        <div className="border-b border-primary/10 bg-gradient-to-br from-white via-surface to-primary/[0.04] px-5 py-6 sm:px-8 sm:py-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary/90">Publishing intake</p>
-          <h3 className="mt-2 font-serif text-2xl tracking-tight text-charcoal sm:text-3xl">Ingest from email package</h3>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
-            Walk through metadata, media, taxonomy, and promotion. Each step maps to the live project layout and
-            sidebar—nothing here is throwaway copy.
-          </p>
-        </div>
-
-        <div className="space-y-6 px-5 py-6 sm:px-8 sm:py-8">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {INGEST_STEPS.map(({ step, title, description }) => {
-              const active = builderStep === step;
-              return (
-                <button
-                  key={step}
-                  type="button"
-                  onClick={() => setBuilderStep(step)}
-                  className={`group flex flex-col rounded-xl border p-4 text-left transition ${
-                    active
-                      ? "border-primary/35 bg-white shadow-md ring-1 ring-primary/20"
-                      : "border-primary/10 bg-white/70 hover:border-primary/25 hover:bg-white"
-                  }`}
-                >
-                  <span
-                    className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold tabular-nums ${
-                      active ? "bg-primary text-white" : "bg-charcoal/[0.06] text-charcoal/55 group-hover:text-charcoal"
-                    }`}
-                  >
-                    {step}
-                  </span>
-                  <span className="mt-3 font-serif text-[15px] leading-snug text-charcoal">{title}</span>
-                  <span className="mt-1.5 text-[11px] leading-relaxed text-muted sm:text-xs">{description}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="rounded-2xl border border-primary/10 bg-white/80 p-5 shadow-inner shadow-primary/[0.03] sm:p-6">
-            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-primary/8 pb-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary/80">
-                  Step {builderStep} of 4
+      {workspaceTab === "drafts" ? (
+    <div className="grid gap-8 xl:grid-cols-[260px_minmax(0,1fr)]">
+      <aside className="space-y-4">
+        <button
+          type="button"
+          onClick={() => selectRow(null)}
+          className="w-full rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-primary"
+        >
+          + New project
+        </button>
+        {loading ? <p className="text-sm text-muted">Loading…</p> : null}
+        <div>
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Drafts</p>
+          {rows.map((row) => (
+            <div
+              key={row.id}
+              className={`mb-2 rounded-lg border ${
+                activeId === row.id ? "border-primary/40 bg-primary/5" : "border-primary/12 bg-white"
+              }`}
+            >
+              <button type="button" onClick={() => selectRow(row)} className="w-full px-3 py-2 text-left text-sm">
+                <p className="font-medium">{row.title}</p>
+                <p className="text-[10px] uppercase text-muted">
+                  {row.status === "pending" ? "draft" : row.status}
+                  {row.published_slug ? " · live" : ""}
                 </p>
-                <h4 className="mt-1 font-serif text-xl text-charcoal">
-                  {INGEST_STEPS[builderStep - 1]?.title ?? "Intake"}
-                </h4>
+              </button>
+              {row.published_slug ? (
+                <button
+                  type="button"
+                  className="w-full border-t border-primary/8 px-3 py-1.5 text-left text-[10px] uppercase tracking-[0.1em] text-red-700"
+                  onClick={() => void deletePublished(row.published_slug!)}
+                >
+                  Unpublish
+                </button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </aside>
+
+      <div className="space-y-6">
+        {error ? (
+          <p className="whitespace-pre-wrap rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+            {error}
+          </p>
+        ) : null}
+        {saveMessage ? (
+          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            {saveMessage}
+          </p>
+        ) : null}
+
+        <Section
+          title="Publish URL"
+          hint="Matches production: /projects/designer-directory-hospitality-interiors — used on Projects grid, Latest Projects, and architect profile."
+        >
+          <p className="rounded-lg bg-primary/5 px-4 py-3 font-mono text-sm text-primary break-all">{publishUrl}</p>
+          <Field label="Custom slug (optional)" hint="Leave blank to auto-generate from project name.">
+            <input className={input} value={form.slug ?? ""} onChange={(e) => patch("slug", e.target.value)} placeholder={slugPreview} />
+          </Field>
+        </Section>
+
+        <Section title="Architect" hint="Maps to Professionals — search existing studios or create a new firm profile.">
+          <ArchitectPicker
+            label="Studio"
+            hint={`${architectOptions.length} profiles (database + site directory).`}
+            value={architectSelectValue}
+            options={architectSelectOptions}
+            onChange={selectArchitect}
+          />
+          <MediaUploadPanel
+            label="Architect profile photo"
+            hint="Square image on /professionals/[slug] — upload or paste URL; saved when you publish."
+            mode="single"
+            previewUrls={form.professionalImageUrl ? [form.professionalImageUrl] : []}
+            uploading={uploadingProfessionalImage}
+            uploadError={professionalImageUploadError}
+            urlValue={professionalImageUrlInput}
+            onUrlChange={setProfessionalImageUrlInput}
+            onAddUrl={() => void importUrl(professionalImageUrlInput, "professional")}
+            onUpload={(files) => void uploadFiles(files, "professional")}
+            onRemove={() => patch("professionalImageUrl", "")}
+          />
+          {form.architectMode === "new" ? (
+            <>
+              <Field label="Firm name">
+                <input className={input} value={form.architectureFirm} onChange={(e) => patch("architectureFirm", e.target.value)} />
+              </Field>
+              <Field label="Lead architect">
+                <input className={input} value={form.leadArchitect} onChange={(e) => patch("leadArchitect", e.target.value)} />
+              </Field>
+              <div className="grid gap-3 md:grid-cols-2">
+                <Field label="Website">
+                  <input className={input} value={form.professionalSocials?.website ?? ""} onChange={(e) => patchSocial("website", e.target.value)} />
+                </Field>
+                <Field label="Instagram">
+                  <input className={input} value={form.professionalSocials?.instagram ?? ""} onChange={(e) => patchSocial("instagram", e.target.value)} />
+                </Field>
+                <Field label="Facebook">
+                  <input className={input} value={form.professionalSocials?.facebook ?? ""} onChange={(e) => patchSocial("facebook", e.target.value)} />
+                </Field>
+                <Field label="YouTube">
+                  <input className={input} value={form.professionalSocials?.youtube ?? ""} onChange={(e) => patchSocial("youtube", e.target.value)} />
+                </Field>
               </div>
-              <p className="max-w-md text-xs leading-relaxed text-muted sm:text-sm">
-                {INGEST_STEPS[builderStep - 1]?.description}
-              </p>
-            </div>
-
-            <div className="mt-6 space-y-5">
-              {builderStep === 1 ? (
-                <div className="grid gap-5">
-                  <div>
-                    <label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Content type</label>
-                    <select
-                      value={newEntry.contentType}
-                      onChange={(e) =>
-                        setNewEntry((v) => ({
-                          ...v,
-                          contentType: e.target.value as "project" | "student",
-                        }))
-                      }
-                      className={`${fieldInput} mt-2`}
-                    >
-                      <option value="project">Project</option>
-                      <option value="student">Student (events & awards)</option>
-                    </select>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div>
-                      <label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Year</label>
-                      <input
-                        value={newEntry.projectYear}
-                        onChange={(e) => setNewEntry((v) => ({ ...v, projectYear: e.target.value }))}
-                        placeholder="Completion year"
-                        className={`${fieldInput} mt-2`}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Gross area</label>
-                      <input
-                        value={newEntry.grossArea}
-                        onChange={(e) => setNewEntry((v) => ({ ...v, grossArea: e.target.value }))}
-                        placeholder="e.g. 12,400 sq ft"
-                        className={`${fieldInput} mt-2`}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Location</label>
-                      <input
-                        value={newEntry.projectLocation}
-                        onChange={(e) => setNewEntry((v) => ({ ...v, projectLocation: e.target.value }))}
-                        placeholder="City, region, country"
-                        className={`${fieldInput} mt-2`}
-                      />
-                    </div>
-                  </div>
-                </div>
+            </>
+          ) : (
+            <>
+              <Field label="Firm (from profile)">
+                <input className={input} value={form.architectureFirm} readOnly />
+              </Field>
+              <Field label="Lead">
+                <input className={input} value={form.leadArchitect} onChange={(e) => patch("leadArchitect", e.target.value)} />
+              </Field>
+              {form.professionalId ? (
+                <button
+                  type="button"
+                  className="text-xs uppercase tracking-[0.12em] text-red-700"
+                  onClick={() => void deleteArchitect(form.professionalId!)}
+                >
+                  Remove architect profile
+                </button>
               ) : null}
+            </>
+          )}
+        </Section>
 
-              {builderStep === 2 ? (
-                <div className="space-y-5">
-                  <div>
-                    <label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Description & credits</label>
-                    <textarea
-                      value={newEntry.sourceText}
-                      onChange={(e) => setNewEntry((v) => ({ ...v, sourceText: e.target.value }))}
-                      placeholder="Paste the full message received over email—headers, credits, and narrative."
-                      className={`${fieldInput} mt-2 min-h-[160px] resize-y`}
-                    />
-                  </div>
-                  <div className="grid gap-4 lg:grid-cols-2">
-                    <div>
-                      <label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Image URLs</label>
-                      <textarea
-                        value={newEntry.imageUrlsText}
-                        onChange={(e) => setNewEntry((v) => ({ ...v, imageUrlsText: e.target.value }))}
-                        placeholder="One URL per line · supports 20+ high-res frames"
-                        className={`${fieldInput} mt-2 min-h-[120px] resize-y font-mono text-[13px]`}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Video URLs</label>
-                      <textarea
-                        value={newEntry.videoLinksText}
-                        onChange={(e) => setNewEntry((v) => ({ ...v, videoLinksText: e.target.value }))}
-                        placeholder="YouTube, Vimeo, or direct MP4/WebM links—one per line"
-                        className={`${fieldInput} mt-2 min-h-[120px] resize-y font-mono text-[13px]`}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Bulk upload</label>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      className="sr-only"
-                      onChange={(e) => void uploadFiles(e.currentTarget.files)}
-                    />
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          fileInputRef.current?.click();
-                        }
-                      }}
-                      onDragEnter={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDragActive(true);
-                      }}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDragActive(true);
-                      }}
-                      onDragLeave={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDragActive(false);
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDragActive(false);
-                        void uploadFiles(e.dataTransfer.files);
-                      }}
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`mt-3 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-4 py-10 text-center transition ${
-                        dragActive
-                          ? "border-primary/50 bg-primary/[0.06]"
-                          : "border-primary/20 bg-primary/[0.02] hover:border-primary/35 hover:bg-primary/[0.04]"
-                      }`}
-                    >
-                      <p className="font-serif text-base text-charcoal">Drop files or click to browse</p>
-                      <p className="mt-2 max-w-md text-xs leading-relaxed text-muted">
-                        Images, PDFs, and video files upload to InsForge Storage. URLs are appended to the lists above
-                        automatically.
-                      </p>
-                      {uploadingFiles ? (
-                        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-primary">Uploading…</p>
-                      ) : (
-                        <span className="mt-4 rounded-full border border-primary/25 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
-                          Choose files
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ) : null}
+        <Section title="Page header" hint="Top of project page — breadcrumb category, title, meta line.">
+          <Field label="Project title (H1)">
+            <input className={input} value={form.projectName} onChange={(e) => patch("projectName", e.target.value)} />
+          </Field>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Category">
+              <select className={input} value={form.category} onChange={(e) => patch("category", e.target.value)}>
+                {PROJECT_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Project type">
+              <select className={input} value={form.projectType} onChange={(e) => patch("projectType", e.target.value)}>
+                {PROJECT_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </Section>
 
-              {builderStep === 3 ? (
-                <div className="grid gap-5 md:grid-cols-2">
-                  <div>
-                    <label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Link as</label>
-                    <select
-                      value={newEntry.taxonomyKind}
-                      onChange={(e) =>
-                        setNewEntry((v) => ({ ...v, taxonomyKind: e.target.value as "professional" | "company" }))
-                      }
-                      className={`${fieldInput} mt-2`}
-                    >
-                      <option value="professional">Architect / professional</option>
-                      <option value="company">Brand / company</option>
-                    </select>
-                    <p className="mt-2 text-xs leading-relaxed text-muted">
-                      Professionals power portfolio pages and student attribution.
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Name</label>
-                    <input
-                      list={newEntry.taxonomyKind === "professional" ? "professionals-list" : "companies-list"}
-                      value={newEntry.taxonomyName}
-                      onChange={(e) => setNewEntry((v) => ({ ...v, taxonomyName: e.target.value }))}
-                      placeholder="Search existing or type a new name"
-                      className={`${fieldInput} mt-2`}
-                    />
-                    <datalist id="professionals-list">
-                      {professionals.map((p) => (
-                        <option key={p.id} value={p.firm ?? p.name ?? ""} />
-                      ))}
-                    </datalist>
-                    <datalist id="companies-list">
-                      {companies.map((c) => (
-                        <option key={c.id} value={c.name ?? ""} />
-                      ))}
-                    </datalist>
-                    <p className="mt-2 text-xs leading-relaxed text-muted">
-                      Matches hydrate from your database. Unmatched names become new records when you publish.
-                    </p>
-                  </div>
-                </div>
-              ) : null}
+        <Section title="Build details sidebar" hint="Left column on the live page.">
+          <div className="grid gap-4 md:grid-cols-2">
+            <LocationCombobox
+              label="Location"
+              hint="Search city, state, or country from the site geo map."
+              value={form.projectLocation ?? ""}
+              onChange={(v) => patch("projectLocation", v)}
+            />
+            <Field label="Area">
+              <input className={input} value={form.grossBuiltArea ?? ""} onChange={(e) => patch("grossBuiltArea", e.target.value)} placeholder="Approx. 1,174 m²" />
+            </Field>
+            <Field label="Year">
+              <input className={input} value={form.completionYear ?? ""} onChange={(e) => patch("completionYear", e.target.value)} />
+            </Field>
+          </div>
+          <Field label="Manufacturers">
+            <textarea className={`${input} min-h-[72px]`} value={form.manufacturers ?? ""} onChange={(e) => patch("manufacturers", e.target.value)} />
+          </Field>
+          <Field label="Climate strategy">
+            <input className={input} value={form.climateStrategy ?? ""} onChange={(e) => patch("climateStrategy", e.target.value)} />
+          </Field>
+          <Field label="Primary materials">
+            <input className={input} value={form.primaryMaterials ?? ""} onChange={(e) => patch("primaryMaterials", e.target.value)} />
+          </Field>
+          <Field label="Imagery note">
+            <input className={input} value={form.imageryNote ?? ""} onChange={(e) => patch("imageryNote", e.target.value)} />
+          </Field>
+        </Section>
 
-              {builderStep === 4 ? (
-                <div className="space-y-5">
-                  <div>
-                    <label className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Catalog / PDF URL</label>
-                    <input
-                      value={newEntry.sourcePdfUrl}
-                      onChange={(e) => setNewEntry((v) => ({ ...v, sourcePdfUrl: e.target.value }))}
-                      placeholder="Optional direct link for source references"
-                      className={`${fieldInput} mt-2 font-mono text-[13px]`}
-                    />
-                  </div>
-                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-primary/12 bg-primary/[0.03] p-4">
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 rounded border-primary/30 text-primary focus:ring-primary/30"
-                      checked={newEntry.isTrending}
-                      onChange={(e) => setNewEntry((v) => ({ ...v, isTrending: e.target.checked }))}
-                    />
-                    <span>
-                      <span className="font-medium text-charcoal">Feature in Trending on the homepage</span>
-                      <span className="mt-1 block text-xs leading-relaxed text-muted">
-                        Surfaces alongside the top three curated projects when inventory allows.
-                      </span>
-                    </span>
-                  </label>
-                </div>
-              ) : null}
-            </div>
+        <Section title="Editorial body" hint="Italic dek + narrative paragraphs (blank line = new paragraph).">
+          <Field label="Lead paragraph (dek)">
+            <textarea className={`${input} min-h-[80px] font-serif italic`} value={form.dek} onChange={(e) => patch("dek", e.target.value)} />
+          </Field>
+          <Field label="Full narrative">
+            <textarea className={`${input} min-h-[220px]`} value={form.narrative} onChange={(e) => patch("narrative", e.target.value)} />
+          </Field>
+        </Section>
 
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-primary/10 pt-6">
+        <Section title="Media" hint="Hero appears on the project page and grid card. Gallery fills Visual study (up to 25).">
+          <MediaUploadPanel
+            label="Hero image"
+            hint="Required before publish · full-width on detail page + thumbnail on /projects"
+            mode="single"
+            previewUrls={form.coverImageUrl ? [form.coverImageUrl] : []}
+            uploading={uploadingHero}
+            uploadError={heroUploadError}
+            urlValue={heroUrlInput}
+            onUrlChange={setHeroUrlInput}
+            onAddUrl={() => void importUrl(heroUrlInput, "hero")}
+            onUpload={(files) => void uploadFiles(files, "hero")}
+            onRemove={() => {
+              patch("coverImageUrl", "");
+              setHeroReady(false);
+            }}
+          />
+          <MediaUploadPanel
+            label="Visual study gallery"
+            hint="Optional · up to 25 images on the project page"
+            mode="gallery"
+            maxCount={25}
+            previewUrls={galleryUrls}
+            uploading={uploadingGallery}
+            uploadError={galleryUploadError}
+            urlValue={galleryUrlInput}
+            onUrlChange={setGalleryUrlInput}
+            onAddUrl={() => void importUrl(galleryUrlInput, "gallery")}
+            onUpload={(files) => void uploadFiles(files, "gallery")}
+            onRemove={(i) => setGalleryUrls((prev) => prev.filter((_, j) => j !== i))}
+          />
+        </Section>
+
+        <Section title="Film & walkthrough (optional)">
+          <Field label="YouTube or video URL">
+            <div className="flex gap-2">
+              <input
+                className={input}
+                value={form.videoUrl ?? ""}
+                onChange={(e) => {
+                  patch("videoUrl", e.target.value);
+                  setVideoReady(false);
+                }}
+                placeholder="https://www.youtube.com/watch?v=…"
+              />
               <button
                 type="button"
-                disabled={builderStep === 1}
-                onClick={() => setBuilderStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3 | 4) : s))}
-                className="rounded-full border border-primary/25 px-5 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-charcoal transition hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-40"
+                className="shrink-0 rounded-full border border-primary/25 px-4 py-2 text-xs uppercase tracking-[0.1em]"
+                disabled={importingVideo || !(form.videoUrl ?? "").trim()}
+                onClick={() => void importVideoUrl(form.videoUrl ?? "")}
               >
-                Back
+                {importingVideo ? "…" : "Add URL"}
               </button>
-              <div className="flex flex-wrap gap-2">
-                {builderStep < 4 ? (
-                  <button
-                    type="button"
-                    onClick={() => setBuilderStep((s) => (s < 4 ? ((s + 1) as 1 | 2 | 3 | 4) : s))}
-                    className="rounded-full bg-primary px-6 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white shadow-sm transition hover:bg-primary/90"
-                  >
-                    Continue
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => void createEntry()}
-                    className="rounded-full bg-charcoal px-6 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white shadow-sm transition hover:bg-charcoal/90"
-                  >
-                    Create queue entry
-                  </button>
-                )}
-              </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {loading && rows.length === 0 ? (
-        <p className="rounded-xl border border-primary/12 bg-white/60 px-4 py-3 text-sm text-muted shadow-inner">
-          Loading publishing queue…
-        </p>
-      ) : null}
-
-      <div className="flex flex-wrap gap-3">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by title or ID"
-          className={`${fieldInput} min-w-[240px]`}
-        />
-        <select
-          value={kindFilter}
-          onChange={(e) => setKindFilter(e.target.value as "all" | "project" | "student")}
-          className={`${fieldInput} min-w-[180px]`}
-        >
-          <option value="all">All content types</option>
-          <option value="project">Project</option>
-          <option value="student">Student</option>
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as "all" | QueueRow["status"])}
-          className={`${fieldInput} min-w-[160px]`}
-        >
-          <option value="all">All statuses</option>
-          {statuses.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="overflow-x-auto rounded-xl border border-primary/15 bg-surface">
-        <table className="min-w-full">
-          <thead className="border-b border-primary/10">
-            <tr className="text-left text-xs uppercase tracking-[0.14em] text-muted">
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Type</th>
-              <th className="px-4 py-3">Received</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredRows.map((row) => (
-              <tr key={row.id} className="border-b border-primary/10 text-sm">
-                <td className="px-4 py-3">
-                  <p className="font-medium text-charcoal">{row.title}</p>
-                  <p className="text-xs text-muted">{row.id.slice(0, 8)}...</p>
-                </td>
-                <td className="px-4 py-3 capitalize">{row.content_type}</td>
-                <td className="px-4 py-3 text-muted">{new Date(row.created_at).toLocaleDateString()}</td>
-                <td className="px-4 py-3">
-                  <select
-                    className="rounded-md border border-primary/20 bg-white px-2 py-1 text-sm"
-                    value={row.status}
-                    onChange={(e) => void updateStatus(row.id, e.currentTarget.value as QueueRow["status"])}
-                  >
-                    {statuses.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={() => setActive(row)}
-                    className="rounded-md border border-primary/25 px-3 py-1 text-xs uppercase tracking-[0.12em] text-primary"
-                  >
-                    Review / Edit
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {active ? (
-        <div className="overflow-hidden rounded-2xl border border-primary/12 bg-surface shadow-[0_24px_80px_-48px_rgba(28,28,28,0.35)]">
-          <div className="border-b border-primary/10 bg-gradient-to-br from-white via-surface to-primary/[0.04] px-5 py-6 sm:px-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary/90">Review & refine</p>
-            <h3 className="mt-2 font-serif text-2xl tracking-tight text-charcoal sm:text-3xl">Edit queue entry</h3>
-            <p className="mt-2 text-sm text-muted">
-              Publishing URL: <span className="font-medium text-charcoal">{active.published_url ?? "Not published yet"}</span>
-            </p>
-            <p className="mt-1 font-mono text-xs text-muted">ID · {active.id}</p>
-          </div>
-
-          <div className="space-y-4 px-5 py-6 sm:px-8">
-            <PublishingQueueEditFields
-              contentType={active.content_type}
-              helpers={{
-                fieldInput,
-                str: activeFormField,
-                setStr: setActiveFormField,
-                val: activeFormValue,
-                setVal: setActiveFormValue,
-                projectName: projectNameDisplay(),
-                setProjectName: setProjectNameAndTitle,
-                longText: longTextDisplay(),
-                setLongText: setLongTextAndSource,
-              }}
-            />
-
-            <div className="rounded-2xl border border-primary/10 bg-white/85 p-5 shadow-inner shadow-primary/[0.03]">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Publishing metadata</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted">
-                Content type, catalog PDF, hero frame, taxonomy (auto-creates on publish), and homepage trending.
-              </p>
-              <select
-                value={active.content_type}
-                onChange={(e) => setActive({ ...active, content_type: e.target.value as QueueRow["content_type"] })}
-                className={`${fieldInput} mt-4`}
-              >
-                <option value="project">Project</option>
-                <option value="student">Student (events & awards)</option>
-              </select>
-              <input
-                className={`${fieldInput} mt-3 font-mono text-[13px]`}
-                value={active.source_pdf_url ?? ""}
-                onChange={(e) => setActive({ ...active, source_pdf_url: e.target.value })}
-                placeholder="Primary PDF / catalog URL (storage or public link)"
-              />
-              <input
-                className={`${fieldInput} mt-3`}
-                value={activeFormField("coverImageUrl")}
-                onChange={(e) => setActiveFormField("coverImageUrl", e.target.value)}
-                placeholder="Cover / hero image URL"
-              />
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                <select
-                  value={active.taxonomy_kind ?? "professional"}
-                  onChange={(e) =>
-                    setActive({
-                      ...active,
-                      taxonomy_kind: e.target.value as "professional" | "company",
-                    })
-                  }
-                  className={fieldInput}
-                >
-                  <option value="professional">Architect / professional</option>
-                  <option value="company">Company / manufacturer</option>
-                </select>
-                <input
-                  value={active.taxonomy_name ?? ""}
-                  onChange={(e) => setActive({ ...active, taxonomy_name: e.target.value })}
-                  placeholder="Search or create name"
-                  className={fieldInput}
-                />
-              </div>
-              <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-primary/12 bg-primary/[0.03] p-4">
-                <input
-                  type="checkbox"
-                  className="mt-1 h-4 w-4 rounded border-primary/30 text-primary focus:ring-primary/30"
-                  checked={Boolean(active.is_trending)}
-                  onChange={(e) => setActive({ ...active, is_trending: e.target.checked })}
-                />
-                <span>
-                  <span className="font-medium text-charcoal">Mark as Trending</span>
-                  <span className="mt-1 block text-xs leading-relaxed text-muted">Surfaces on the homepage Trending rail for projects when enabled.</span>
+          </Field>
+          {form.videoUrl && (videoThumb || videoReady) ? (
+            <div className="relative aspect-video max-w-lg overflow-hidden rounded-lg border border-emerald-600/30">
+              {videoThumb ? (
+                <Image src={videoThumb} alt="Video preview" fill className="object-cover" unoptimized />
+              ) : (
+                <div className="flex h-full min-h-[180px] items-center justify-center bg-charcoal/5 text-sm text-muted">
+                  Video URL saved
+                </div>
+              )}
+              {videoReady ? (
+                <span className="absolute left-2 top-2 rounded-full bg-emerald-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+                  Linked
                 </span>
-              </label>
+              ) : null}
             </div>
+          ) : null}
+        </Section>
 
-            <div className="rounded-2xl border border-primary/10 bg-white/85 p-5 shadow-inner shadow-primary/[0.03]">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Asset URLs</p>
-              <p className="mt-1 text-xs text-muted">Gallery imagery and embeddable video URLs—one per line.</p>
-              <textarea
-                className={`${fieldInput} mt-4 min-h-[100px] resize-y font-mono text-[13px]`}
-                value={(active.image_urls ?? []).join("\n")}
-                onChange={(e) =>
-                  setActive({
-                    ...active,
-                    image_urls: e.target.value
-                      .split("\n")
-                      .map((v) => v.trim())
-                      .filter(Boolean),
-                  })
-                }
-                placeholder="Image URLs (one per line)"
+        <Section title="Questions & answers">
+          {faqDraft.map((item, i) => (
+            <div key={i} className="space-y-2 border-t border-primary/8 pt-3 first:border-0 first:pt-0">
+              <input
+                className={input}
+                placeholder="Question"
+                value={item.question}
+                onChange={(e) => setFaqDraft((prev) => prev.map((f, j) => (j === i ? { ...f, question: e.target.value } : f)))}
               />
               <textarea
-                className={`${fieldInput} mt-3 min-h-[88px] resize-y font-mono text-[13px]`}
-                value={(active.video_links ?? []).join("\n")}
-                onChange={(e) =>
-                  setActive({
-                    ...active,
-                    video_links: e.target.value
-                      .split("\n")
-                      .map((v) => v.trim())
-                      .filter(Boolean),
-                  })
-                }
-                placeholder="Video links (one per line)"
+                className={`${input} min-h-[72px]`}
+                placeholder="Answer"
+                value={item.answer}
+                onChange={(e) => setFaqDraft((prev) => prev.map((f, j) => (j === i ? { ...f, answer: e.target.value } : f)))}
               />
             </div>
+          ))}
+          <button type="button" className="text-xs uppercase tracking-[0.12em] text-primary" onClick={() => setFaqDraft((p) => [...p, { question: "", answer: "" }])}>
+            + Add Q&amp;A
+          </button>
+        </Section>
 
-            <div className="rounded-2xl border border-primary/10 bg-white/85 p-5 shadow-inner shadow-primary/[0.03]">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Visual layout</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted">
-                Drag blocks to match the magazine layout. Hero, gallery, and enquiry modules map directly to the live
-                page.
-              </p>
-              <div className="mt-4">
-                <LayoutBlockBuilder
-                  value={active.layout_blocks ?? []}
-                  onChange={(blocks) =>
-                    setActive({
-                      ...active,
-                      layout_blocks: normalizeLayoutBlocks(blocks),
-                    })
-                  }
-                />
-              </div>
-            </div>
-          </div>
+        <section className="rounded-xl border border-primary/12 bg-primary/[0.04] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Workflow</p>
+          <ol className="mt-2 list-decimal space-y-1 pl-4 text-sm text-charcoal/85">
+            <li>Save draft (project title is enough to start)</li>
+            <li>Upload hero — wait for green &quot;Ready&quot; preview (AVIF, PNG, JPEG)</li>
+            <li>Complete copy, architect, and build details</li>
+            <li>Publish — live on /projects, homepage Latest Projects, and architect profile</li>
+          </ol>
+          {(() => {
+            const check = validatePublishForm(buildPayload());
+            return check.ok ? (
+              <p className="mt-3 text-xs font-medium text-emerald-800">Ready to publish.</p>
+            ) : (
+              <p className="mt-3 whitespace-pre-wrap text-xs text-muted">Before publish: {check.message}</p>
+            );
+          })()}
+        </section>
 
-          <div className="flex flex-wrap gap-2 border-t border-primary/10 bg-white/50 px-5 py-5 sm:px-8">
+        <div className="flex flex-wrap gap-2 border-t border-primary/10 pt-6">
+          <button type="button" disabled={saving} onClick={() => void saveDraft()} className="rounded-full border border-primary/25 px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em]">
+            Save draft
+          </button>
+          <button type="button" disabled={saving} onClick={() => void publish()} className="rounded-full bg-primary px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white">
+            Publish to projects
+          </button>
+          {editingPublishedSlug ? (
             <button
               type="button"
               disabled={saving}
-              onClick={() => void saveActive("save")}
-              className="rounded-full border border-primary/25 px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-charcoal transition hover:bg-primary/5"
+              onClick={() => void deletePublished(editingPublishedSlug)}
+              className="rounded-full border border-red-400 px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-red-800"
             >
-              Save entry
+              Unpublish & delete
             </button>
+          ) : null}
+          {activeId !== "new" && !editingPublishedSlug ? (
             <button
               type="button"
               disabled={saving}
-              onClick={() => void saveActive("publish")}
-              className="rounded-full bg-primary px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-sm transition hover:bg-primary/90"
+              onClick={() => void deleteDraft()}
+              className="rounded-full border border-red-300 px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-red-800"
             >
-              Publish now
+              Delete draft
             </button>
-            {active.published_slug ? (
-              <>
-                <a
-                  href={
-                    active.content_type === "student"
-                        ? "/awards"
-                        : `/projects/${active.published_slug}`
-                  }
-                  className="rounded-full border border-primary/25 px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-charcoal transition hover:bg-primary/5"
-                >
-                  Open published page
-                </a>
-                {active.content_type === "project" ? (
-                  <button
-                    type="button"
-                    disabled={saving}
-                    onClick={() => void featureOnHomepage()}
-                    className="rounded-full border border-primary/25 px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-charcoal transition hover:bg-primary/5"
-                  >
-                    Feature on homepage
-                  </button>
-                ) : null}
-              </>
-            ) : null}
+          ) : null}
+          {published.some((p) => p.slug === slugPreview) && !editingPublishedSlug ? (
             <button
               type="button"
               disabled={saving}
-              onClick={() => setActive(null)}
-              className="rounded-full border border-charcoal/20 px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-charcoal/80 transition hover:bg-charcoal/[0.04]"
+              onClick={() => void deletePublished(slugPreview)}
+              className="rounded-full border border-red-400 px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-red-800"
             >
-              Close
+              Delete published slug
             </button>
-          </div>
+          ) : null}
+          {activeId !== "new" ? (
+            <a href={`/admin/submissions/preview?id=${activeId}`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-primary/25 px-5 py-2 text-xs uppercase tracking-[0.12em]">
+              Preview
+            </a>
+          ) : null}
         </div>
+      </div>
+    </div>
       ) : null}
     </div>
   );

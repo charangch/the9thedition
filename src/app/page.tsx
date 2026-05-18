@@ -24,6 +24,7 @@ import {
   projectsByCategory,
 } from "@/lib/project-catalog";
 import { generatedImagePath } from "@/lib/generated-media";
+import { LatestProjectsSection } from "@/components/home/latest-projects-section";
 import { getFeaturedPublishedProjects, getTrendingPublishedProjects } from "@/lib/published-projects";
 
 export const metadata = buildPageMetadata({
@@ -137,6 +138,8 @@ export default async function Home() {
           })}
         </div>
       </section>
+
+      <LatestProjectsSection />
 
       <section className="container-premium pt-10">
         <div className="grid gap-6 lg:grid-cols-12">

@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 
 const nav = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/submissions", label: "Submissions" },
+  { href: "/admin/bug-reports", label: "Bug reports" },
   { href: "/admin/users", label: "User Management" },
   { href: "/admin/leads", label: "Leads" },
   { href: "/admin/newsletter", label: "Newsletter Ops" },
@@ -27,7 +29,7 @@ export function AdminShell({
           <p className="px-2 text-xs uppercase tracking-[0.14em] text-primary">Admin Workspace</p>
           <nav className="mt-3 grid grid-cols-2 gap-1 sm:grid-cols-4 lg:grid-cols-1 lg:space-y-1 lg:gap-0">
             {nav.map((item) => {
-              const active = pathname === item.href;
+              const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(`${item.href}/`));
               return (
                 <Link
                   key={item.href}

@@ -30,7 +30,6 @@ export function BrandMark({ className, logoClassName, textClassName }: BrandMark
           height={256}
           className="h-full w-full object-contain object-center"
           decoding="async"
-          fetchPriority="high"
         />
       </span>
       <div
