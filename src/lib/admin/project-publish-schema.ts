@@ -103,8 +103,7 @@ export const emptyProjectPublishForm = (): ProjectPublishDraft => ({
     "Stone, lime, timber and glazing per narrative; verify submittals for your site.",
   climateStrategy: "",
   primaryMaterials: "",
-  imageryNote:
-    "On-site procedural graphics for layout and image SEO—replace with project photography when available.",
+  imageryNote: "",
   dek: "",
   narrative: "",
   coverImageUrl: "",
@@ -113,7 +112,7 @@ export const emptyProjectPublishForm = (): ProjectPublishDraft => ({
   faq: [
     {
       question: "What is this project about?",
-      answer: "Editorial documentation on the9thedition—verify specifications with the design team.",
+      answer: "Editorial documentation on the9thedition with build details and photography from the design team.",
     },
   ],
 });

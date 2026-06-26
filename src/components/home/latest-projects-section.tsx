@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ProjectCard, type ProjectCardModel } from "@/components/project-card";
-import { generatedImagePath } from "@/lib/generated-media";
+import { resolveProjectHeroImage } from "@/lib/project-catalog";
 import { getLatestPublishedProjects } from "@/lib/published-projects";
 
 /** FIFO homepage rail — newest admin-published projects first (additive section). */
@@ -13,7 +13,10 @@ export async function LatestProjectsSection() {
     title: p.title,
     category: p.category || "Architecture & Design",
     location: p.location,
-    image: p.hero_image_url ?? p.image_urls[0] ?? generatedImagePath("projects", p.slug, 0),
+    image: resolveProjectHeroImage(p.slug, {
+      dbHero: p.hero_image_url,
+      dbGallery: p.image_urls,
+    }),
     meta: p.byline ?? null,
   }));
 

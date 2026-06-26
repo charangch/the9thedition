@@ -71,19 +71,16 @@ export function ProfessionalProfilePresentation({ model }: { model: Professional
         )}
       </section>
 
-      <section className="mt-14">
-        <h2 className="font-serif text-3xl">Approved submissions</h2>
-        <p className="mt-2 text-sm text-muted">Submitted projects approved by admin for this architecture firm.</p>
-        {publishedProjects.length === 0 ? (
-          <p className="mt-6 text-sm text-muted">No approved submissions linked yet.</p>
-        ) : (
+      {publishedProjects.length > 0 ? (
+        <section className="mt-14">
+          <h2 className="font-serif text-3xl">Published work</h2>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {publishedProjects.map((project) => (
               <ProjectCard key={project.slug} project={publishedToProjectCard(project)} />
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      ) : null}
     </main>
   );
 }

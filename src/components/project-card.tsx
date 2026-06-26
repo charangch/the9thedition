@@ -1,9 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { LikeShareBar } from "@/components/like-share-bar";
-import { generatedImagePath } from "@/lib/generated-media";
 import { shouldUseUnoptimizedImage } from "@/lib/media/remote-image";
-import type { ProjectEntry } from "@/lib/project-catalog";
+import { resolveProjectHeroImage, type ProjectEntry } from "@/lib/project-catalog";
 import type { PublishedProject } from "@/lib/published-projects";
 
 export type ProjectCardModel = {
@@ -20,7 +19,7 @@ export function catalogEntryToProjectCard(project: ProjectEntry): ProjectCardMod
     slug: project.slug,
     title: project.title,
     category: project.category,
-    image: project.image,
+    image: resolveProjectHeroImage(project.slug),
     meta: project.byline ?? null,
   };
 }
@@ -31,10 +30,10 @@ export function publishedToProjectCard(project: PublishedProject): ProjectCardMo
     title: project.title,
     category: project.category,
     location: project.location,
-    image:
-      project.hero_image_url ??
-      project.image_urls?.[0] ??
-      generatedImagePath("projects", project.slug, 0),
+    image: resolveProjectHeroImage(project.slug, {
+      dbHero: project.hero_image_url,
+      dbGallery: project.image_urls,
+    }),
     meta: project.byline ?? null,
   };
 }

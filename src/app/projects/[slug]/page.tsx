@@ -3,30 +3,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BlockRenderer } from "@/components/block-renderer";
-import { GeneratedImageGallery, GeneratedImageHero } from "@/components/generated-image-gallery";
-import { ProjectGalleryPremium } from "@/components/project-gallery-premium";
+import { GeneratedImageGallery } from "@/components/generated-image-gallery";
 import { ProjectEnquiryForm } from "@/components/project-enquiry-form";
-import { ProjectPdfBlock, ProjectVideoBlock } from "@/components/project-media";
+import { ProjectPdfBlock } from "@/components/project-media";
 import { ProjectPageJsonLd } from "@/components/project-json-ld";
 import { LikeShareBar } from "@/components/like-share-bar";
 import { RelatedProjectsRail, type RelatedProjectRailItem } from "@/components/related-projects-rail";
-import { SaveProjectButton } from "@/components/save-project-button";
 import { PublishedProjectDetail } from "@/components/published-project-detail";
 import { SiteHeader } from "@/components/site-header";
 import { type LayoutBlock, normalizeLayoutBlocks } from "@/lib/layout-blocks";
 import { getArchitectBySlug } from "@/lib/architects";
 import type { PublishedProject } from "@/lib/published-projects";
 import { getPublishedProjectBySlug, getPublishedProjects } from "@/lib/published-projects";
-import { getAllProjectSlugs, getProjectBySlug, getRelatedProjects } from "@/lib/project-catalog";
+import { getAllProjectSlugs, getProjectBySlug, getRelatedProjects, resolveProjectHeroImage } from "@/lib/project-catalog";
 import { getProjectArticle } from "@/lib/project-detail-content";
-import { GENERATED_GALLERY_COUNT } from "@/lib/generated-media";
-import { generatedGalleryPaths } from "@/lib/generated-media";
-import { generatedImagePath } from "@/lib/generated-media";
+import { catalogProjectGalleryPaths, CATALOG_PROJECT_IMAGE_COUNT, catalogProjectHeroPath } from "@/lib/catalog-project-images";
+import { generatedGalleryPaths, GENERATED_GALLERY_COUNT } from "@/lib/generated-media";
 import { getSiteUrl } from "@/lib/site-url";
 
 type Props = { params: Promise<{ slug: string }> };
-
-const DEFAULT_YOUTUBE = "https://www.youtube.com/watch?v=lOJO1osi9po";
 
 export function generateStaticParams() {
   return getAllProjectSlugs().map((slug) => ({ slug }));
@@ -72,7 +67,10 @@ function pickRelatedPublished(
 
 function toPublishedRailItems(projects: PublishedProject[]): RelatedProjectRailItem[] {
   return projects.map((p) => {
-    const thumb = p.hero_image_url ?? p.image_urls[0] ?? generatedImagePath("projects", p.slug, 0);
+    const thumb = resolveProjectHeroImage(p.slug, {
+      dbHero: p.hero_image_url,
+      dbGallery: p.image_urls,
+    });
     const firm = (p.form_data as Record<string, unknown> | null)?.architectureFirm;
     const line2 =
       typeof firm === "string" && firm.trim()
@@ -99,11 +97,38 @@ function mergePublishedImages(published: PublishedProject): string[] {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const published = await getPublishedProjectBySlug(slug);
   const site = getSiteUrl();
+  const project = getProjectBySlug(slug);
+  if (project) {
+    const article = getProjectArticle(project, getArchitectBySlug(project.architectSlug));
+    const seo = article.seo;
+    const url = `${site}/projects/${project.slug}`;
+    const og = absoluteOgForProject(site, project.slug);
+    return {
+      title: seo?.title ?? `${project.title} | Projects | the9thedition`,
+      description: seo?.description ?? project.excerpt,
+      keywords: seo?.keywords,
+      alternates: { canonical: url },
+      openGraph: {
+        type: "article",
+        url,
+        title: project.title,
+        description: seo?.description ?? project.excerpt,
+        images: [{ url: og, width: 1600, height: 900, alt: project.title }],
+      },
+      twitter: { card: "summary_large_image", title: project.title, description: seo?.description, images: [og] },
+      robots: { index: true, follow: true },
+      other: seo?.geo_region ? { "geo.region": seo.geo_region } : {},
+    };
+  }
+  const published = await getPublishedProjectBySlug(slug);
   if (published) {
     const url = `${site}/projects/${published.slug}`;
-    const og = published.hero_image_url ?? published.image_urls[0] ?? absoluteOgForProject(site, published.slug);
+    const og = resolveProjectHeroImage(published.slug, {
+      dbHero: published.hero_image_url,
+      dbGallery: published.image_urls,
+    });
+    const ogAbsolute = og.startsWith("http") ? og : `${site.replace(/\/$/, "")}${og}`;
     return {
       title: `${published.title} | Projects | the9thedition`,
       description: published.excerpt ?? undefined,
@@ -113,38 +138,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         url,
         title: published.title,
         description: published.excerpt ?? undefined,
-        images: [{ url: og }],
+        images: [{ url: ogAbsolute }],
       },
       robots: { index: true, follow: true },
     };
   }
-  const project = getProjectBySlug(slug);
-  if (!project) return { title: "Projects | the9thedition" };
-  const article = getProjectArticle(project, getArchitectBySlug(project.architectSlug));
-  const seo = article.seo;
-  const url = `${site}/projects/${project.slug}`;
-  const og = absoluteOgForProject(site, project.slug);
-  return {
-    title: seo?.title ?? `${project.title} | Projects | the9thedition`,
-    description: seo?.description ?? project.excerpt,
-    keywords: seo?.keywords,
-    alternates: { canonical: url },
-    openGraph: {
-      type: "article",
-      url,
-      title: project.title,
-      description: seo?.description ?? project.excerpt,
-      images: [{ url: og, width: 1600, height: 900, alt: project.title }],
-    },
-    twitter: { card: "summary_large_image", title: project.title, description: seo?.description, images: [og] },
-    robots: { index: true, follow: true },
-    other: seo?.geo_region ? { "geo.region": seo.geo_region } : {},
-  };
+  return { title: "Projects | the9thedition" };
 }
 
 function absoluteOgForProject(site: string, slug: string) {
-  const path = generatedImagePath("projects", slug, 0);
-  return `${site.replace(/\/$/, "")}${path}`;
+  return `${site.replace(/\/$/, "")}${catalogProjectHeroPath(slug)}`;
 }
 
 function LeadParagraph({ text }: { text: string }) {
@@ -192,7 +195,7 @@ export default async function ProjectDetailPage({ params }: Props) {
       slug: p.slug,
       title: p.title,
       category: p.category,
-      image: generatedImagePath("projects", p.slug, 0),
+      image: resolveProjectHeroImage(p.slug),
       line2: arch ? `${arch.firm} · ${p.projectType}` : p.projectType,
     };
   });
@@ -238,14 +241,16 @@ export default async function ProjectDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <GeneratedImageHero
-          collection="projects"
-          itemKey={staticProject.slug}
-          index={0}
-          title={staticProject.title}
-          alt={article.imageAlts[0]}
-          priority
-        />
+        <div className="relative aspect-[21/9] w-full max-h-[min(72vh,720px)] bg-charcoal/5 md:aspect-[2.4/1]">
+          <Image
+            src={resolveProjectHeroImage(staticProject.slug)}
+            alt={article.imageAlts[0] ?? staticProject.title}
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+        </div>
 
         <div className="container-premium mt-12">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] lg:gap-16 xl:grid-cols-[300px_minmax(0,1fr)]">
@@ -285,18 +290,10 @@ export default async function ProjectDetailPage({ params }: Props) {
                 collection="projects"
                 itemKey={staticProject.slug}
                 title={staticProject.title}
-                from={1}
-                count={GENERATED_GALLERY_COUNT - 1}
-                alts={article.imageAlts}
+                imageUrls={catalogProjectGalleryPaths(staticProject.slug).slice(1)}
+                alts={article.imageAlts.slice(1, CATALOG_PROJECT_IMAGE_COUNT)}
+                showSubtext={false}
               />
-
-              {article.media.videoUrl ? (
-                <ProjectVideoBlock
-                  url={article.media.videoUrl}
-                  title={`${staticProject.title} — video`}
-                  caption={article.media.videoCaption ?? "Editorial film selection (YouTube); replace with project-specific media when available."}
-                />
-              ) : null}
 
               {article.media.pdfUrl ? (
                 <ProjectPdfBlock
@@ -310,7 +307,6 @@ export default async function ProjectDetailPage({ params }: Props) {
                 <h2 id="project-faq-heading" className="font-serif text-2xl text-charcoal">
                   Questions & answers
                 </h2>
-                <p className="mt-2 text-sm text-muted">Structured for answer engines—verify facts with the design team for specification work.</p>
                 <dl className="mt-8 space-y-6">
                   {article.faq.map((f, i) => (
                     <div key={i} className="rounded-xl border border-charcoal/10 bg-surface p-5">
@@ -320,14 +316,6 @@ export default async function ProjectDetailPage({ params }: Props) {
                   ))}
                 </dl>
               </section>
-
-              <div className="mt-10 border-t border-charcoal/10 pt-8">
-                <SaveProjectButton
-                  slug={staticProject.slug}
-                  title={staticProject.title}
-                  imageUrl={staticProject.image}
-                />
-              </div>
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
@@ -347,10 +335,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               </div>
 
               {relatedRailItems.length ? (
-                <RelatedProjectsRail
-                  items={relatedRailItems}
-                  subheading="Same category, typology, or architect—up to 24 projects. Use the arrows to scroll horizontally."
-                />
+                <RelatedProjectsRail items={relatedRailItems} />
               ) : null}
             </div>
           </div>

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LikeShareBar } from "@/components/like-share-bar";
 import { SiteHeader } from "@/components/site-header";
 import { getArchitectBySlug } from "@/lib/architects";
-import { generatedImagePath } from "@/lib/generated-media";
+import { resolveProjectHeroImage } from "@/lib/project-catalog";
 import { shouldUseUnoptimizedImage } from "@/lib/media/remote-image";
 import { getPublishedProjects } from "@/lib/published-projects";
 import { getAllProjects } from "@/lib/project-catalog";
@@ -27,7 +27,7 @@ export default async function ProjectsPage() {
         title: project.title,
         category: project.category,
         location: project.location,
-        image: project.image,
+        image: resolveProjectHeroImage(project.slug),
         meta: architect?.firm ?? null,
       };
     });
@@ -37,7 +37,10 @@ export default async function ProjectsPage() {
       title: project.title,
       category: project.category,
       location: project.location,
-      image: project.hero_image_url ?? project.image_urls[0] ?? generatedImagePath("projects", project.slug, 0),
+      image: resolveProjectHeroImage(project.slug, {
+        dbHero: project.hero_image_url,
+        dbGallery: project.image_urls,
+      }),
       meta: project.byline ?? null,
     })),
     ...staticRows,

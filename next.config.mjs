@@ -55,7 +55,11 @@ const nextConfig = {
       },
       { pathname: "/images/brand/edition-arch-logo.png" },
       { pathname: "/images/brand/**" },
+      { pathname: "/images/projects/**" },
     ],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 };
 

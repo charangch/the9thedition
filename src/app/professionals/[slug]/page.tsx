@@ -6,7 +6,8 @@ import { SiteHeader } from "@/components/site-header";
 import { getAllArchitectSlugs, getArchitectBySlug } from "@/lib/architects";
 import { getProfessionalBySlug } from "@/lib/professionals-db";
 import { getPublishedProjectsByArchitectureFirm, getPublishedProjectsByProfessionalId } from "@/lib/published-projects";
-import { getProjectsByArchitectSlug } from "@/lib/project-catalog";
+import { getProjectsByArchitectSlug, resolveProjectHeroImage } from "@/lib/project-catalog";
+import { shouldUseUnoptimizedImage } from "@/lib/media/remote-image";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -86,11 +87,12 @@ export default async function ProfessionalDetailPage({ params }: Props) {
                   <Link href={`/projects/${project.slug}`} className="group block flex-1">
                     <div className="relative aspect-[16/10] bg-charcoal/5">
                       <Image
-                        src={project.image}
+                        src={resolveProjectHeroImage(project.slug)}
                         alt={project.title}
                         fill
                         sizes="(max-width: 1024px) 100vw, 33vw"
                         className="object-cover transition group-hover:scale-[1.02]"
+                        unoptimized={shouldUseUnoptimizedImage(resolveProjectHeroImage(project.slug))}
                       />
                     </div>
                     <div className="p-4">
@@ -116,14 +118,9 @@ export default async function ProfessionalDetailPage({ params }: Props) {
           )}
         </section>
 
-        <section className="mt-14">
-          <h2 className="font-serif text-3xl">Approved submissions</h2>
-          <p className="mt-2 text-sm text-muted">
-            Submitted projects approved by admin for this architecture firm.
-          </p>
-          {publishedProjects.length === 0 ? (
-            <p className="mt-6 text-sm text-muted">No approved submissions linked yet.</p>
-          ) : (
+        {publishedProjects.length > 0 ? (
+          <section className="mt-14">
+            <h2 className="font-serif text-3xl">Published work</h2>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {publishedProjects.map((project) => (
                 <article
@@ -152,8 +149,8 @@ export default async function ProfessionalDetailPage({ params }: Props) {
                 </article>
               ))}
             </div>
-          )}
-        </section>
+          </section>
+        ) : null}
       </main>
     </>
   );

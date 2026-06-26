@@ -1,6 +1,6 @@
 import type { ProjectArticle } from "@/lib/project-detail-content";
 import type { ProjectEntry } from "@/lib/project-catalog";
-import { absoluteGeneratedImageUrl, GENERATED_GALLERY_COUNT } from "@/lib/generated-media";
+import { catalogProjectGalleryPaths } from "@/lib/catalog-project-images";
 import { getSiteUrl } from "@/lib/site-url";
 
 function jsonLdString(data: unknown) {
@@ -18,9 +18,7 @@ export function ProjectPageJsonLd({
 }) {
   const SITE = getSiteUrl();
   const url = `${SITE}${urlPath}`;
-  const images = Array.from({ length: GENERATED_GALLERY_COUNT }, (_, i) =>
-    absoluteGeneratedImageUrl(SITE, "projects", project.slug, i),
-  );
+  const images = catalogProjectGalleryPaths(project.slug).map((path) => `${SITE.replace(/\/$/, "")}${path}`);
 
   const seo = article.seo;
   const headline = seo?.title ?? `${project.title} | the9thedition`;

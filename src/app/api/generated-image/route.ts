@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { buildProjectSceneSvg, isCatalogProjectSlug } from "@/lib/procedural-project-scene";
 
 const COLLECTIONS = new Set(["articles", "news", "archive", "top100", "projects"]);
 
@@ -161,8 +162,20 @@ export async function GET(request: Request) {
   if (!COLLECTIONS.has(c) || !k || k.length > 220 || Number.isNaN(i) || i < 0 || i > 19) {
     return new NextResponse("Not found", { status: 404 });
   }
-  const targets = resolvePhotoCandidates(c, k, i);
   const cacheControl = "public, max-age=86400, stale-while-revalidate=604800";
+
+  if (c === "projects" && isCatalogProjectSlug(k)) {
+    const svg = buildProjectSceneSvg(k, i);
+    return new NextResponse(svg, {
+      status: 200,
+      headers: {
+        "Content-Type": "image/svg+xml; charset=utf-8",
+        "Cache-Control": cacheControl,
+      },
+    });
+  }
+
+  const targets = resolvePhotoCandidates(c, k, i);
 
   // Fewer parallel upstream tries + shorter timeouts → faster fallback to SVG.
   const primaryBatch = targets.slice(0, 2);

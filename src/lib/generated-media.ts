@@ -1,7 +1,7 @@
 /** On-site procedural images only — no third-party CDNs. Used by /api/generated-image. */
 export const GENERATED_GALLERY_COUNT = 20;
 /** Bump to invalidate aggressively cached generated image URLs. */
-export const GENERATED_MEDIA_VERSION = "20260420-project-scenes-v2";
+export const GENERATED_MEDIA_VERSION = "20260625-procedural-buildings-v4";
 
 export type GeneratedCollection = "articles" | "news" | "archive" | "top100" | "projects";
 

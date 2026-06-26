@@ -1,0 +1,577 @@
+{
+  "generatedAt": "2026-06-26T04:56:51.968Z",
+  "source": "/Users/gurucharan/Downloads/projects hollyhock",
+  "imagesPerProject": 7,
+  "projects": {
+    "hyderabad-climate-smart-residence": [
+      {
+        "file": "20_Seymour_Gv_-148.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      },
+      {
+        "file": "20_Seymour_Gv_-149.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      },
+      {
+        "file": "20_Seymour_Gv_-150.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      },
+      {
+        "file": "20_Seymour_Gv_-151.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      },
+      {
+        "file": "20_Seymour_Gv_-152.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      },
+      {
+        "file": "20_Seymour_Gv-1.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      },
+      {
+        "file": "20_Seymour_Gv-102.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      }
+    ],
+    "kochi-courtyard-craft-memory": [
+      {
+        "file": "31-Seymour-001.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      },
+      {
+        "file": "31-Seymour-002.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      },
+      {
+        "file": "31-Seymour-003.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      },
+      {
+        "file": "31-Seymour-004.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      },
+      {
+        "file": "31-Seymour-005.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      },
+      {
+        "file": "31-Seymour-006.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      },
+      {
+        "file": "31-Seymour-007.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      }
+    ],
+    "interiors-texture-light-silence": [
+      {
+        "file": "Original33280564 FACADE.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      },
+      {
+        "file": "Original33280566 REAR.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      },
+      {
+        "file": "image 1.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      },
+      {
+        "file": "image 10.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      },
+      {
+        "file": "image 11.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      },
+      {
+        "file": "image 2.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      },
+      {
+        "file": "image 3.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      }
+    ],
+    "alibag-nine-courtyards": [
+      {
+        "file": "Premium33265996 ENTRY.jpg",
+        "hollyhockProject": "Kenneth St Sandringham"
+      },
+      {
+        "file": "Premium33266282 FACACDE1.jpg",
+        "hollyhockProject": "Kenneth St Sandringham"
+      },
+      {
+        "file": "Premium33266283 FACADE2.jpg",
+        "hollyhockProject": "Kenneth St Sandringham"
+      },
+      {
+        "file": "Premium33268980 REAR.jpg",
+        "hollyhockProject": "Kenneth St Sandringham"
+      },
+      {
+        "file": "Premium33265900 KITCHEN.jpg",
+        "hollyhockProject": "Kenneth St Sandringham"
+      },
+      {
+        "file": "Premium33265905 LIVING2.jpg",
+        "hollyhockProject": "Kenneth St Sandringham"
+      },
+      {
+        "file": "Premium33265907 LIVING DINING.jpg",
+        "hollyhockProject": "Kenneth St Sandringham"
+      }
+    ],
+    "kottayam-sun-shade-vernacular": [
+      {
+        "file": "7 Norman lg 01.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      },
+      {
+        "file": "7 Norman lg 03.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      },
+      {
+        "file": "7 Norman lg 08.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      },
+      {
+        "file": "7 Norman lg 09.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      },
+      {
+        "file": "7 Norman lg 11.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      },
+      {
+        "file": "7 Norman lg 13.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      },
+      {
+        "file": "7 Norman lg 17.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      }
+    ],
+    "bengaluru-mexican-palette-brutalism": [
+      {
+        "file": "4A_Smith_001LBweb.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      },
+      {
+        "file": "4A_Smith_002LBweb.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      },
+      {
+        "file": "4b_Smith_002 2.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      },
+      {
+        "file": "4b_Smith_002LB.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      },
+      {
+        "file": "4A_Smith_003LBweb.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      },
+      {
+        "file": "4A_Smith_005.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      },
+      {
+        "file": "4A_Smith_012.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      }
+    ],
+    "designer-directory-hospitality-interiors": [
+      {
+        "file": "PRINT_066A8818.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      },
+      {
+        "file": "PRINT_066A8822.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      },
+      {
+        "file": "PRINT_066A8831.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      },
+      {
+        "file": "PRINT_066A8835.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      },
+      {
+        "file": "PRINT_066A8841.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      },
+      {
+        "file": "PRINT_066A8855.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      },
+      {
+        "file": "PRINT_066A8861.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      }
+    ],
+    "thrissur-forest-bungalow-mango": [
+      {
+        "file": "image2.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      },
+      {
+        "file": "image3.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      },
+      {
+        "file": "image4.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      },
+      {
+        "file": "image5.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      },
+      {
+        "file": "image6.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      },
+      {
+        "file": "image7.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      },
+      {
+        "file": "image8.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      }
+    ],
+    "pawna-weekend-rustic-stone": [
+      {
+        "file": "10.jpg",
+        "hollyhockProject": "6 Filbert Street, Bentleigh East"
+      },
+      {
+        "file": "11.jpg",
+        "hollyhockProject": "6 Filbert Street, Bentleigh East"
+      },
+      {
+        "file": "12.jpg",
+        "hollyhockProject": "6 Filbert Street, Bentleigh East"
+      },
+      {
+        "file": "13.jpg",
+        "hollyhockProject": "6 Filbert Street, Bentleigh East"
+      },
+      {
+        "file": "14.jpg",
+        "hollyhockProject": "6 Filbert Street, Bentleigh East"
+      },
+      {
+        "file": "15.jpg",
+        "hollyhockProject": "6 Filbert Street, Bentleigh East"
+      },
+      {
+        "file": "16.jpg",
+        "hollyhockProject": "6 Filbert Street, Bentleigh East"
+      }
+    ],
+    "jaipur-haveli-modern-life": [
+      {
+        "file": "14_Beths-230.jpg",
+        "hollyhockProject": "Beths St Bentleigh"
+      },
+      {
+        "file": "UBZ179_14BethsSt-029.jpg",
+        "hollyhockProject": "Beths St Bentleigh"
+      },
+      {
+        "file": "UBZ179_14BethsSt-044.jpg",
+        "hollyhockProject": "Beths St Bentleigh"
+      },
+      {
+        "file": "UBZ179_14BethsSt-063.jpg",
+        "hollyhockProject": "Beths St Bentleigh"
+      },
+      {
+        "file": "UBZ179_14BethsSt-086.jpg",
+        "hollyhockProject": "Beths St Bentleigh"
+      },
+      {
+        "file": "UBZ179_14BethsSt-091.jpg",
+        "hollyhockProject": "Beths St Bentleigh"
+      },
+      {
+        "file": "UBZ179_14BethsSt-106.jpg",
+        "hollyhockProject": "Beths St Bentleigh"
+      }
+    ],
+    "khar-west-fluid-interiors": [
+      {
+        "file": "UBR393_9RubySt_0014.jpg",
+        "hollyhockProject": "Ruby st Ormond"
+      },
+      {
+        "file": "UBR393_9RubySt_0025.jpg",
+        "hollyhockProject": "Ruby st Ormond"
+      },
+      {
+        "file": "UBR393_9RubySt_0004.jpg",
+        "hollyhockProject": "Ruby st Ormond"
+      },
+      {
+        "file": "UBR393_9RubySt_0030.jpg",
+        "hollyhockProject": "Ruby st Ormond"
+      },
+      {
+        "file": "UBR393_9RubySt_0043.jpg",
+        "hollyhockProject": "Ruby st Ormond"
+      },
+      {
+        "file": "UBR393_9RubySt_0058.jpg",
+        "hollyhockProject": "Ruby st Ormond"
+      },
+      {
+        "file": "UBR393_9RubySt_0062.jpg",
+        "hollyhockProject": "Ruby st Ormond"
+      }
+    ],
+    "chennai-coastal-villa-verandahs": [
+      {
+        "file": "36589993crop1600x1200.jpg",
+        "hollyhockProject": "Mountview Highett"
+      },
+      {
+        "file": "36589994crop1600x1200.jpg",
+        "hollyhockProject": "Mountview Highett"
+      },
+      {
+        "file": "36589995crop1600x1200.jpg",
+        "hollyhockProject": "Mountview Highett"
+      },
+      {
+        "file": "36589996crop1600x1200.jpg",
+        "hollyhockProject": "Mountview Highett"
+      },
+      {
+        "file": "36589997crop1600x1200.jpg",
+        "hollyhockProject": "Mountview Highett"
+      },
+      {
+        "file": "36589998crop1600x1200.jpg",
+        "hollyhockProject": "Mountview Highett"
+      },
+      {
+        "file": "36590000crop1600x1200.jpg",
+        "hollyhockProject": "Mountview Highett"
+      }
+    ],
+    "rajapalayam-farmhouse-generations": [
+      {
+        "file": "20_Seymour_Gv-106.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      },
+      {
+        "file": "20_Seymour_Gv-11.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      },
+      {
+        "file": "20_Seymour_Gv-111.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      },
+      {
+        "file": "20_Seymour_Gv-116.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      },
+      {
+        "file": "20_Seymour_Gv-118.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      },
+      {
+        "file": "20_Seymour_Gv-12.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      },
+      {
+        "file": "20_Seymour_Gv-126.jpg",
+        "hollyhockProject": "20 Seymour Gr Brighton"
+      }
+    ],
+    "birdhouses-kutch-community-towers": [
+      {
+        "file": "31-Seymour-008.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      },
+      {
+        "file": "31-Seymour-009.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      },
+      {
+        "file": "31-Seymour-010.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      },
+      {
+        "file": "31-Seymour-011.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      },
+      {
+        "file": "31-Seymour-012.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      },
+      {
+        "file": "31-Seymour-013.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      },
+      {
+        "file": "31-Seymour-014.jpg",
+        "hollyhockProject": "31 Seymour Gr Brighton"
+      }
+    ],
+    "courtyards-tropical-luxury-homes": [
+      {
+        "file": "Original33280564 FACADE.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      },
+      {
+        "file": "Original33280566 REAR.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      },
+      {
+        "file": "image 1.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      },
+      {
+        "file": "image 10.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      },
+      {
+        "file": "image 11.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      },
+      {
+        "file": "image 2.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      },
+      {
+        "file": "image 3.jpg",
+        "hollyhockProject": "Gwendoline Avenue Bentleigh"
+      }
+    ],
+    "celebrity-homes-art-decisions": [
+      {
+        "file": "7 Norman lg 19.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      },
+      {
+        "file": "7 Norman lg 20.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      },
+      {
+        "file": "7 Norman lg 22.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      },
+      {
+        "file": "7 Norman lg 23.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      },
+      {
+        "file": "7 Norman lg 25.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      },
+      {
+        "file": "7 Norman lg 26.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      },
+      {
+        "file": "7 Norman lg 27.jpg",
+        "hollyhockProject": "Norman Mckinnon"
+      }
+    ],
+    "temple-architecture-modern-gallery": [
+      {
+        "file": "4A_Smith_017LBweb.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      },
+      {
+        "file": "4A_Smith_019.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      },
+      {
+        "file": "4b_Smith_008.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      },
+      {
+        "file": "4b_Smith_008LB.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      },
+      {
+        "file": "4b_Smith_010.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      },
+      {
+        "file": "4b_Smith_010LB.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      },
+      {
+        "file": "4B_Smith_013 1.jpg",
+        "hollyhockProject": "Smith St Bentleigh"
+      }
+    ],
+    "portrait-artist-studios": [
+      {
+        "file": "PRINT_066A8818.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      },
+      {
+        "file": "PRINT_066A8822.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      },
+      {
+        "file": "PRINT_066A8831.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      },
+      {
+        "file": "PRINT_066A8835.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      },
+      {
+        "file": "PRINT_066A8841.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      },
+      {
+        "file": "PRINT_066A8855.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      },
+      {
+        "file": "PRINT_066A8861.jpg",
+        "hollyhockProject": "Gallaghers Glen Waverley"
+      }
+    ],
+    "biennale-cities-design-destinations": [
+      {
+        "file": "image2.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      },
+      {
+        "file": "image3.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      },
+      {
+        "file": "image4.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      },
+      {
+        "file": "image5.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      },
+      {
+        "file": "image6.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      },
+      {
+        "file": "image7.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      },
+      {
+        "file": "image8.jpg",
+        "hollyhockProject": "19B Vunabere Avenue"
+      }
+    ]
+  }
+}

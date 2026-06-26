@@ -1,9 +1,8 @@
 import type { BuildSpec, ProjectArticle, ProjectDetailMedia } from "@/lib/project-detail-content";
+import { stripInternalProjectCopy } from "@/lib/project-detail-content";
 import type { PublishedProject } from "@/lib/published-projects";
 import { generatedGalleryPaths } from "@/lib/generated-media";
 
-const DEFAULT_IMAGERY =
-  "On-site procedural graphics for layout and image SEO—replace with project photography when available.";
 const DEFAULT_MANUFACTURERS =
   "Stone, lime, timber and glazing per narrative; verify submittals for your site.";
 
@@ -32,10 +31,6 @@ export function getPublishedProjectArticle(published: PublishedProject): Project
     },
     { label: "Lead", value: lead || firm || "—" },
     {
-      label: "Imagery",
-      value: String(form.imageryNote ?? DEFAULT_IMAGERY),
-    },
-    {
       label: "Manufacturers",
       value: String(form.manufacturers ?? DEFAULT_MANUFACTURERS),
     },
@@ -58,17 +53,13 @@ export function getPublishedProjectArticle(published: PublishedProject): Project
       : [
           {
             question: "What is this project about?",
-            answer: `${published.title} is documented on the9thedition with structured build details and imagery for research readers.`,
+            answer: `${published.title} is documented on the9thedition with build details and photography from the design team.`,
           },
           {
             question: "Which region does it reference?",
             answer: published.location
-              ? `Location signals focus on ${published.location}; confirm climate and code data for your site.`
+              ? `The project is located in ${published.location}.`
               : "See build details for place-based context.",
-          },
-          {
-            question: "How should images be interpreted?",
-            answer: String(form.imageryNote ?? DEFAULT_IMAGERY),
           },
         ];
 
@@ -87,10 +78,8 @@ export function getPublishedProjectArticle(published: PublishedProject): Project
   );
 
   const media: ProjectDetailMedia = {};
-  const video = (published.video_links[0] ?? String(form.videoUrl ?? form.videoLink ?? "")).trim();
-  if (video) media.videoUrl = video;
 
-  return {
+  return stripInternalProjectCopy({
     dek: published.excerpt ?? String(form.dek ?? form.shortText ?? ""),
     paragraphs,
     specs,
@@ -104,5 +93,5 @@ export function getPublishedProjectArticle(published: PublishedProject): Project
       geo_region: published.location ?? "India",
     },
     media,
-  };
+  });
 }

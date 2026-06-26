@@ -1,5 +1,6 @@
 import type { ArchitectProfile } from "@/lib/architects";
 import { generatedGalleryPaths } from "@/lib/generated-media";
+import { catalogProjectGalleryPaths } from "@/lib/catalog-project-images";
 import { getProjectLongForm } from "@/lib/project-long-form";
 import type { ProjectEntry } from "@/lib/project-catalog";
 
@@ -55,10 +56,6 @@ function baseSpecs(project: ProjectEntry, architect?: ArchitectProfile): BuildSp
     specs.push({ label: "Architects", value: "See project credits" });
   }
   specs.push({
-    label: "Imagery",
-    value: "On-site procedural graphics for layout and image SEO—replace with project photography when available.",
-  });
-  specs.push({
     label: "Manufacturers",
     value: "Stone, lime, timber and glazing per narrative; verify submittals for your site.",
   });
@@ -70,7 +67,7 @@ function fallbackParagraphs(project: ProjectEntry, architect?: ArchitectProfile)
     `${project.excerpt}`,
     `The project explores ${project.category.toLowerCase()} through a disciplined plan: circulation is clear, rooms are scaled for contemporary living, and daylight is treated as a primary material. ${architect ? `Led by ${architect.firm}, the team emphasised regional intelligibility without pastiche—details are contemporary, references are local.` : "Material choices favour longevity and tactility over novelty."}`,
     `Interiors balance openness with acoustic comfort—soft surfaces, careful proportions, and layered lighting create rooms that feel calm at different times of day. Landscape and built form are read as one system: shading, planting, and thresholds are coordinated rather than added later.`,
-    `As built, the work demonstrates how premium architecture can align comfort, climate, and craft—an approach that scales from façade to furniture handle. For SEO and research readers: verify code compliance, manufacturer data, and site-specific climate files before specifying analogous systems.`,
+    `As built, the work demonstrates how premium architecture can align comfort, climate, and craft—an approach that scales from façade to furniture handle. For researchers: verify code compliance, manufacturer data, and site-specific climate files before specifying analogous systems.`,
   ];
 }
 
@@ -111,7 +108,6 @@ function ensureLengthBetween500And700(
     `Material strategy is treated as a performance system. Surfaces are selected for tactile depth and durability, but also for moisture behaviour, repairability, and availability in the local supply chain. This approach lowers long-term maintenance risk and keeps replacements realistic for owners over a 10- to 20-year lifecycle.`,
     `Spatially, the project balances ceremonial arrival with practical daily routines. Service circulation, storage, and wet areas are coordinated early so primary rooms remain visually calm. The resulting sequence avoids dead corners, supports flexible furniture use, and maintains clear sightlines that enhance both comfort and supervision.`,
     `For ${category.toLowerCase()} work in ${region}, buildability is as important as concept clarity. Drawings and site decisions should account for contractor skill levels, procurement lead times, and monsoon or summer sequencing constraints. This reduces site improvisation and protects design intent through execution.`,
-    `From an SEO, GEO, and AEO perspective, this dossier intentionally documents location context, typology (${projectType}), materials, and likely reader questions. That structure helps homeowners, students, and professionals discover relevant precedents while still requiring project-specific validation before specification.`,
     `In summary, the project demonstrates how contemporary design quality can coexist with climate intelligence, craft knowledge, and operational realism. Rather than relying on oversized floor area or trend-driven finishes, it builds value through proportion, envelope performance, and coherent detailing from master plan to joinery.`,
   ];
 
@@ -143,9 +139,37 @@ function ensureLengthBetween500And700(
   return out;
 }
 
+/** Filters CMS/workflow placeholder copy from project body text (catalog + published). */
+export const INTERNAL_WORKFLOW_COPY_PATTERN =
+  /\b(SEO|GEO|AEO)\b|on-site procedural|on-site generated|answer engine|search and answer engines|image SEO|procedural graphics|Editorial film selection|Reader save disabled|Public reader accounts|Structured for answer engines|structured metadata for search|optimized for discovery/i;
+
+function stripInternalCatalogCopy(article: ProjectArticle): ProjectArticle {
+  return stripInternalProjectCopy(article);
+}
+
+export function stripInternalProjectCopy(article: ProjectArticle): ProjectArticle {
+  return {
+    ...article,
+    paragraphs: article.paragraphs.filter((p) => !INTERNAL_WORKFLOW_COPY_PATTERN.test(p)),
+    specs: article.specs.filter(
+      (row) => row.label !== "Imagery" && !INTERNAL_WORKFLOW_COPY_PATTERN.test(row.value),
+    ),
+    faq: article.faq.filter(
+      (item) =>
+        !INTERNAL_WORKFLOW_COPY_PATTERN.test(item.question) &&
+        !INTERNAL_WORKFLOW_COPY_PATTERN.test(item.answer),
+    ),
+    media: {
+      ...article.media,
+      videoUrl: undefined,
+      videoCaption: undefined,
+    },
+  };
+}
+
 function defaultImageAlts(title: string): string[] {
-  return Array.from({ length: 20 }, (_, j) =>
-    j === 0 ? `Hero visual — ${title.slice(0, 72)} (frame 1 of 20)` : `Project study — ${title.slice(0, 60)} (frame ${j + 1} of 20)`,
+  return Array.from({ length: 7 }, (_, j) =>
+    j === 0 ? `Hero visual — ${title.slice(0, 72)}` : `Project photography — ${title.slice(0, 60)} (frame ${j + 1})`,
   );
 }
 
@@ -185,7 +209,7 @@ export function getProjectArticle(
     faq = [
       {
         question: "What is this project about?",
-        answer: `${project.title} is documented as part of the9thedition’s editorial project catalog with structured metadata for search and answer engines.`,
+        answer: `${project.title} is documented as part of the9thedition’s editorial project catalog.`,
       },
       {
         question: "Which region does it reference?",
@@ -195,7 +219,7 @@ export function getProjectArticle(
       },
       {
         question: "How should images be interpreted?",
-        answer: "Gallery frames are on-site procedural graphics unless replaced by commissioned photography.",
+        answer: "Gallery frames illustrate layout and material studies; commissioned photography may replace them when available.",
       },
     ];
     seo = {
@@ -212,9 +236,9 @@ export function getProjectArticle(
   const youtubeFromLongForm = lf?.youtubeUrl;
   const videoUrl = mediaMerged.videoUrl?.trim() || youtubeFromLongForm;
 
-  const gallery = generatedGalleryPaths("projects", project.slug);
+  const gallery = catalogProjectGalleryPaths(project.slug);
 
-  return {
+  return stripInternalCatalogCopy({
     dek,
     paragraphs,
     specs,
@@ -226,5 +250,5 @@ export function getProjectArticle(
       ...mediaMerged,
       ...(videoUrl ? { videoUrl } : {}),
     },
-  };
+  });
 }

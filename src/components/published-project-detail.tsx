@@ -2,15 +2,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { GeneratedImageGallery } from "@/components/generated-image-gallery";
 import { ProjectEnquiryForm } from "@/components/project-enquiry-form";
-import { ProjectVideoBlock } from "@/components/project-media";
 import { LikeShareBar } from "@/components/like-share-bar";
 import { RelatedProjectsRail, type RelatedProjectRailItem } from "@/components/related-projects-rail";
-import { SaveProjectButton } from "@/components/save-project-button";
 import { ArchitectSocialLinks } from "@/components/architect-social-links";
+import { getArchitectBySlug } from "@/lib/architects";
 import { getPublishedProjectArticle } from "@/lib/published-project-article";
 import { getProfessionalBySlug } from "@/lib/professionals-db";
+import {
+  getAllProjects,
+  resolveProjectHeroImage,
+  type ProjectEntry,
+} from "@/lib/project-catalog";
 import type { PublishedProject } from "@/lib/published-projects";
-import { generatedImagePath } from "@/lib/generated-media";
 
 function LeadParagraph({ text }: { text: string }) {
   const lead = /^_([^_]+)_\s*/.exec(text);
@@ -24,35 +27,85 @@ function LeadParagraph({ text }: { text: string }) {
   return <p className="text-base leading-[1.75] text-charcoal/90 md:text-[17px]">{text}</p>;
 }
 
-function toRailItems(projects: PublishedProject[]): RelatedProjectRailItem[] {
-  return projects.map((p) => {
-    const form = (p.form_data ?? {}) as Record<string, unknown>;
-    const firm = String(form.architectureFirm ?? p.byline?.replace(/^By\s+/i, "") ?? "");
-    return {
-      slug: p.slug,
-      title: p.title,
-      category: p.category,
-      image: p.hero_image_url ?? p.image_urls[0] ?? generatedImagePath("projects", p.slug, 0),
-      line2: firm || undefined,
-    };
-  });
+function publishedToRailItem(p: PublishedProject): RelatedProjectRailItem {
+  const form = (p.form_data ?? {}) as Record<string, unknown>;
+  const firm = String(form.architectureFirm ?? p.byline?.replace(/^By\s+/i, "") ?? "");
+  return {
+    slug: p.slug,
+    title: p.title,
+    category: p.category,
+    image: resolveProjectHeroImage(p.slug, {
+      dbHero: p.hero_image_url,
+      dbGallery: p.image_urls,
+    }),
+    line2: firm || undefined,
+  };
 }
 
-function pickRelated(current: PublishedProject, all: PublishedProject[], max = 24): PublishedProject[] {
+function catalogToRailItem(p: ProjectEntry): RelatedProjectRailItem {
+  const arch = getArchitectBySlug(p.architectSlug);
+  return {
+    slug: p.slug,
+    title: p.title,
+    category: p.category,
+    image: resolveProjectHeroImage(p.slug),
+    line2: arch ? `${arch.firm} · ${p.projectType}` : p.projectType,
+  };
+}
+
+function pickRelatedPublished(
+  current: PublishedProject,
+  all: PublishedProject[],
+  maxItems: number,
+): PublishedProject[] {
   const others = all.filter((p) => p.slug !== current.slug);
-  const firm = String((current.form_data as Record<string, unknown> | null)?.architectureFirm ?? "");
   const ordered: PublishedProject[] = [];
   const push = (pred: (p: PublishedProject) => boolean) => {
     for (const p of others) {
-      if (ordered.length >= max) return;
+      if (ordered.length >= maxItems) return;
       if (ordered.some((x) => x.slug === p.slug)) continue;
       if (pred(p)) ordered.push(p);
     }
   };
   if (current.professional_id) push((p) => p.professional_id === current.professional_id);
+  if (current.professional_slug) push((p) => p.professional_slug === current.professional_slug);
   push((p) => p.category === current.category);
-  push(() => true);
-  return ordered.slice(0, max);
+  push((_p) => true);
+  return ordered.slice(0, maxItems);
+}
+
+/** Published peers first, then editorial catalog projects — always fills the related rail. */
+function buildRelatedRailItems(
+  current: PublishedProject,
+  allPublished: PublishedProject[],
+  max = 24,
+): RelatedProjectRailItem[] {
+  const items: RelatedProjectRailItem[] = [];
+  const seen = new Set<string>([current.slug]);
+
+  for (const p of pickRelatedPublished(current, allPublished, max)) {
+    if (seen.has(p.slug)) continue;
+    seen.add(p.slug);
+    items.push(publishedToRailItem(p));
+    if (items.length >= max) return items;
+  }
+
+  const projectType = String((current.form_data as Record<string, unknown> | null)?.projectType ?? "");
+  const catalog = getAllProjects().filter((p) => !seen.has(p.slug));
+  const pushCatalog = (candidates: ProjectEntry[]) => {
+    for (const p of candidates) {
+      if (items.length >= max) return;
+      if (seen.has(p.slug)) continue;
+      seen.add(p.slug);
+      items.push(catalogToRailItem(p));
+    }
+  };
+
+  pushCatalog(catalog.filter((p) => p.category === current.category && p.projectType === projectType));
+  pushCatalog(catalog.filter((p) => p.category === current.category && p.projectType !== projectType));
+  pushCatalog(catalog.filter((p) => p.category !== current.category));
+
+  return items.slice(0, max);
 }
 
 type Props = {
@@ -65,8 +118,10 @@ export async function PublishedProjectDetail({ published, allPublished }: Props)
   const article = getPublishedProjectArticle(published);
   const form = (published.form_data ?? {}) as Record<string, unknown>;
   const projectType = String(form.projectType ?? "");
-  const heroSrc =
-    published.hero_image_url ?? published.image_urls[0] ?? generatedImagePath("projects", published.slug, 0);
+  const heroSrc = resolveProjectHeroImage(published.slug, {
+    dbHero: published.hero_image_url,
+    dbGallery: published.image_urls,
+  });
   const galleryForStudy = published.image_urls.filter((u) => u && u !== heroSrc).slice(0, 25);
   const dbProfessional = published.professional_slug
     ? await getProfessionalBySlug(published.professional_slug)
@@ -77,7 +132,7 @@ export async function PublishedProjectDetail({ published, allPublished }: Props)
     facebook: dbProfessional?.facebook_url ?? (form.professionalSocials as { facebook?: string })?.facebook,
     youtube: dbProfessional?.youtube_url ?? (form.professionalSocials as { youtube?: string })?.youtube,
   };
-  const relatedRail = toRailItems(pickRelated(published, allPublished));
+  const relatedRail = buildRelatedRailItems(published, allPublished);
   const urlPath = `/projects/${published.slug}`;
 
   return (
@@ -168,40 +223,24 @@ export async function PublishedProjectDetail({ published, allPublished }: Props)
               title={published.title}
               imageUrls={galleryForStudy.length ? galleryForStudy : article.gallery}
               alts={article.imageAlts}
+              showSubtext={false}
             />
 
-            {article.media.videoUrl ? (
-              <ProjectVideoBlock
-                url={article.media.videoUrl}
-                title={`${published.title} — video`}
-                caption="Editorial film selection; supplied by the design team when available."
-              />
+            {article.faq.length ? (
+              <section className="mt-14 border-t border-charcoal/10 pt-10" aria-labelledby="project-faq-heading">
+                <h2 id="project-faq-heading" className="font-serif text-2xl text-charcoal">
+                  Questions &amp; answers
+                </h2>
+                <dl className="mt-8 space-y-6">
+                  {article.faq.map((f, i) => (
+                    <div key={i} className="rounded-xl border border-charcoal/10 bg-surface p-5">
+                      <dt className="font-medium text-charcoal">{f.question}</dt>
+                      <dd className="mt-2 text-sm leading-relaxed text-charcoal/80">{f.answer}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
             ) : null}
-
-            <section className="mt-14 border-t border-charcoal/10 pt-10" aria-labelledby="project-faq-heading">
-              <h2 id="project-faq-heading" className="font-serif text-2xl text-charcoal">
-                Questions &amp; answers
-              </h2>
-              <p className="mt-2 text-sm text-muted">
-                Structured for answer engines—verify facts with the design team for specification work.
-              </p>
-              <dl className="mt-8 space-y-6">
-                {article.faq.map((f, i) => (
-                  <div key={i} className="rounded-xl border border-charcoal/10 bg-surface p-5">
-                    <dt className="font-medium text-charcoal">{f.question}</dt>
-                    <dd className="mt-2 text-sm leading-relaxed text-charcoal/80">{f.answer}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-
-            <div className="mt-10 border-t border-charcoal/10 pt-8">
-              <SaveProjectButton
-                slug={published.slug}
-                title={published.title}
-                imageUrl={heroSrc}
-              />
-            </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -220,12 +259,7 @@ export async function PublishedProjectDetail({ published, allPublished }: Props)
               ) : null}
             </div>
 
-            {relatedRail.length ? (
-              <RelatedProjectsRail
-                items={relatedRail}
-                subheading="Same category or architect—up to 24 projects. Use the arrows to scroll horizontally."
-              />
-            ) : null}
+            <RelatedProjectsRail items={relatedRail} />
           </div>
         </div>
       </div>

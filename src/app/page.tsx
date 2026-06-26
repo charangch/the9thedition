@@ -22,8 +22,9 @@ import {
   getSectionStoriesResolved,
   projectSpotlightSlugs,
   projectsByCategory,
+  resolveProjectHeroImage,
 } from "@/lib/project-catalog";
-import { generatedImagePath } from "@/lib/generated-media";
+import { shouldUseUnoptimizedImage } from "@/lib/media/remote-image";
 import { LatestProjectsSection } from "@/components/home/latest-projects-section";
 import { getFeaturedPublishedProjects, getTrendingPublishedProjects } from "@/lib/published-projects";
 
@@ -109,11 +110,12 @@ export default async function Home() {
                 <Link href={`/projects/${slug}`} className="group block flex-1">
                   <div className="relative aspect-[4/3] overflow-hidden bg-charcoal/5">
                     <Image
-                      src={p.image}
+                      src={resolveProjectHeroImage(slug)}
                       alt={p.title}
                       fill
                       sizes="(max-width: 640px) 50vw, 20vw"
                       className="object-cover transition duration-300 group-hover:scale-[1.03]"
+                      unoptimized={shouldUseUnoptimizedImage(resolveProjectHeroImage(slug))}
                     />
                   </div>
                   <div className="p-3">
@@ -230,11 +232,12 @@ export default async function Home() {
               {projectSpotlights.map((story, i) => {
                 const slug = projectSpotlightSlugs[i];
                 if (!slug) return null;
+                const thumb = resolveProjectHeroImage(slug);
                 const inner = (
                   <>
                     <div className="relative aspect-[16/10]">
                       <Image
-                        src={story.image}
+                        src={thumb}
                         alt={story.title}
                         fill
                         sizes="(max-width: 768px) 100vw, 50vw"
@@ -329,6 +332,7 @@ export default async function Home() {
                         fill
                         sizes="112px"
                         className="object-cover transition group-hover:scale-105"
+                        unoptimized={shouldUseUnoptimizedImage(story.image)}
                       />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -370,6 +374,7 @@ export default async function Home() {
                         fill
                         sizes="112px"
                         className="object-cover transition group-hover:scale-105"
+                        unoptimized={shouldUseUnoptimizedImage(story.image)}
                       />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -411,6 +416,7 @@ export default async function Home() {
                         fill
                         sizes="112px"
                         className="object-cover transition group-hover:scale-105"
+                        unoptimized={shouldUseUnoptimizedImage(story.image)}
                       />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -448,13 +454,19 @@ export default async function Home() {
               ? trendingByDb.map((p) => ({
                   title: p.title,
                   excerpt: p.excerpt ?? "",
-                  image: p.hero_image_url ?? p.image_urls[0] ?? generatedImagePath("projects", p.slug, 0),
+                  image: resolveProjectHeroImage(p.slug, {
+                    dbHero: p.hero_image_url,
+                    dbGallery: p.image_urls,
+                  }),
                   category: p.category || "Trending",
                   slug: p.slug,
                 }))
               : featuredStories.map((story, i) => ({
                   ...story,
                   slug: featuredStorySlugs[i] ?? "",
+                  image: featuredStorySlugs[i]
+                    ? resolveProjectHeroImage(featuredStorySlugs[i]!)
+                    : story.image,
                 }))).map((story) => {
               if (!story.slug) return null;
               const imgUnopt = story.image.startsWith("/api/");

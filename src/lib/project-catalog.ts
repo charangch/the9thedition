@@ -1,4 +1,6 @@
 import type { EditorialStory } from "@/lib/content";
+import { catalogProjectHeroPath } from "@/lib/catalog-project-images";
+import { generatedImagePath } from "@/lib/generated-media";
 import {
   featuredStories,
   projectSpotlights,
@@ -20,7 +22,7 @@ function entry(slug: string, story: EditorialStory, architectSlug: string, proje
     slug,
     architectSlug,
     projectType,
-    image: `/api/generated-image?c=projects&k=${encodeURIComponent(slug)}&i=0`,
+    image: catalogProjectHeroPath(slug),
   };
 }
 
@@ -84,6 +86,33 @@ export function getRelatedProjects(current: ProjectEntry, max = 24): ProjectEntr
 
 export function getAllProjectSlugs(): string[] {
   return projectCatalog.map((p) => p.slug);
+}
+
+type ProjectHeroSource = {
+  dbHero?: string | null;
+  dbGallery?: readonly string[] | null;
+};
+
+/**
+ * Single source of truth for project card thumbnails and detail-page heroes.
+ * Matches `/projects/[slug]` routing: catalog slugs always use local Hollyhock `0.jpg`.
+ */
+export function resolveProjectHeroImage(slug: string, source: ProjectHeroSource = {}): string {
+  const catalog = getProjectBySlug(slug);
+  if (catalog) return catalogProjectHeroPath(slug);
+
+  const hero = source.dbHero?.trim();
+  if (hero) return hero;
+
+  const fromGallery = source.dbGallery?.map((url) => url?.trim()).find(Boolean);
+  if (fromGallery) return fromGallery;
+
+  return generatedImagePath("projects", slug, 0);
+}
+
+/** @deprecated Prefer `resolveProjectHeroImage` — kept for existing call sites. */
+export function resolveProjectListImage(slug: string, dbHero?: string | null): string {
+  return resolveProjectHeroImage(slug, { dbHero });
 }
 
 /** Slugs aligned with `featuredStories` order (7). */
