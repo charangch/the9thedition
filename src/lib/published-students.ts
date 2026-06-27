@@ -1,4 +1,4 @@
-import { createInsForgeServerClientPublic } from "@/lib/insforge-server";
+import { createInsForgeServerClientPublicOrNull } from "@/lib/insforge-server";
 
 export type PublishedStudent = {
   slug: string;
@@ -14,7 +14,8 @@ export type PublishedStudent = {
 };
 
 export async function getPublishedStudents(limit = 100): Promise<PublishedStudent[]> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return [];
   const { data, error } = await client.database
     .from("published_students")
     .select("slug, title, excerpt, content, category, school_name, image_urls, video_links, form_data, published_at")
@@ -34,7 +35,8 @@ export async function getPublishedStudents(limit = 100): Promise<PublishedStuden
 }
 
 export async function getPublishedStudentBySlug(slug: string): Promise<PublishedStudent | null> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return null;
   const { data, error } = await client.database
     .from("published_students")
     .select("slug, title, excerpt, content, category, school_name, image_urls, video_links, form_data, published_at")

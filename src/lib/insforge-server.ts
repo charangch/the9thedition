@@ -63,6 +63,17 @@ export function createInsForgeServerClientPublic() {
   return createInsForgeServerClient(undefined);
 }
 
+/** Read-only server paths (SSG, sitemap) — skip DB when env is unset so `next build` can finish. */
+export function createInsForgeServerClientPublicOrNull() {
+  const env = getInsForgePublicEnv();
+  if (!env) return null;
+  return createClient({
+    baseUrl: env.baseUrl,
+    anonKey: env.anonKey,
+    isServerMode: true,
+  });
+}
+
 /** Optional: service-level operations (keep key server-only; use sparingly) */
 export function createInsForgeServiceClient() {
   const baseUrl = getInsForgePublicEnv()?.baseUrl ?? requireEnv("NEXT_PUBLIC_INSFORGE_URL");

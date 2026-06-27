@@ -1,4 +1,4 @@
-import { createInsForgeServerClientPublic } from "@/lib/insforge-server";
+import { createInsForgeServerClientPublicOrNull } from "@/lib/insforge-server";
 
 export type PublishedArticle = {
   slug: string;
@@ -14,7 +14,8 @@ export type PublishedArticle = {
 const articleSelect = "slug, title, excerpt, body, category, image_url, layout_blocks, published_at";
 
 export async function getPublishedArticleBySlug(slug: string): Promise<PublishedArticle | null> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return null;
   const { data, error } = await client.database.from("articles").select(articleSelect).eq("slug", slug).limit(1);
   if (error) return null;
   const row = Array.isArray(data) ? data[0] : data;

@@ -1,4 +1,4 @@
-import { createInsForgeServerClientPublic } from "@/lib/insforge-server";
+import { createInsForgeServerClientPublicOrNull } from "@/lib/insforge-server";
 
 export type PublishedProject = {
   slug: string;
@@ -57,7 +57,8 @@ function normalizeRow(row: PublishedProject): PublishedProject {
 }
 
 export async function getPublishedProjectBySlug(slug: string): Promise<PublishedProject | null> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return null;
   const { data, error } = await client.database
     .from("published_projects")
     .select(publishedProjectSelectFull)
@@ -72,7 +73,8 @@ export async function getPublishedProjectBySlug(slug: string): Promise<Published
 
 /** Archived admin-published projects — shown first on /archive. */
 export async function getArchivedPublishedBySlug(slug: string): Promise<PublishedProject | null> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return null;
   const { data, error } = await client.database
     .from("published_projects")
     .select(publishedProjectSelectFull)
@@ -86,7 +88,8 @@ export async function getArchivedPublishedBySlug(slug: string): Promise<Publishe
 }
 
 export async function getArchivedPublishedForArchive(limit = 48): Promise<PublishedProject[]> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return [];
   const { data, error } = await client.database
     .from("published_projects")
     .select(publishedProjectSelectSlim)
@@ -99,7 +102,8 @@ export async function getArchivedPublishedForArchive(limit = 48): Promise<Publis
 }
 
 export async function getFeaturedPublishedProjects(limit = 6): Promise<PublishedProject[]> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return [];
   const { data, error } = await client.database
     .from("published_projects")
     .select(publishedProjectSelectHome)
@@ -113,7 +117,8 @@ export async function getFeaturedPublishedProjects(limit = 6): Promise<Published
 
 /** FIFO homepage rail — newest published first. */
 export async function getLatestPublishedProjects(limit = 6): Promise<PublishedProject[]> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return [];
   const { data, error } = await client.database
     .from("published_projects")
     .select(publishedProjectSelectHome)
@@ -128,7 +133,8 @@ export async function getLatestPublishedProjects(limit = 6): Promise<PublishedPr
 }
 
 export async function getPublishedProjects(limit = 200): Promise<PublishedProject[]> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return [];
   const { data, error } = await client.database
     .from("published_projects")
     .select(publishedProjectSelectSlim)
@@ -140,7 +146,8 @@ export async function getPublishedProjects(limit = 200): Promise<PublishedProjec
 }
 
 export async function getTrendingPublishedProjects(limit = 3): Promise<PublishedProject[]> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return [];
   const { data, error } = await client.database
     .from("published_projects")
     .select(publishedProjectSelectHome)
@@ -156,7 +163,8 @@ export async function getPublishedProjectsByArchitectureFirm(
   firmName: string,
   limit = 20,
 ): Promise<PublishedProject[]> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return [];
   const { data, error } = await client.database
     .from("published_projects")
     .select(publishedProjectSelectSlim)
@@ -175,7 +183,8 @@ export async function getPublishedProjectsByArchitectureFirm(
 }
 
 export async function getProjectsUsingProductSlug(productSlug: string, limit = 12): Promise<PublishedProject[]> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return [];
   const { data: links, error: linksError } = await client.database
     .from("project_product_links")
     .select("project_slug")
@@ -201,7 +210,8 @@ export async function getPublishedProjectsByProfessionalId(
   professionalId: string,
   limit = 40,
 ): Promise<PublishedProject[]> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return [];
   const { data, error } = await client.database
     .from("published_projects")
     .select(publishedProjectSelectSlim)
@@ -218,7 +228,8 @@ export async function getPublishedProjectsByProfessionalId(
 /** Count-only — avoids loading rows when only totals are needed (e.g. directory cards). */
 export async function countPublishedProjectsByProfessionalId(professionalId: string): Promise<number> {
   if (!professionalId) return 0;
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return 0;
   const { count, error } = await client.database
     .from("published_projects")
     .select("slug", { count: "exact", head: true })

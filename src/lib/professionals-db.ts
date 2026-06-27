@@ -1,5 +1,8 @@
 import { slugifyProject } from "@/lib/submission-template";
-import { createInsForgeServerClient, createInsForgeServerClientPublic } from "@/lib/insforge-server";
+import {
+  createInsForgeServerClient,
+  createInsForgeServerClientPublicOrNull,
+} from "@/lib/insforge-server";
 
 export type ProfessionalRow = {
   id: string;
@@ -20,7 +23,7 @@ const professionalSelectExtended =
   "id, slug, name, firm, bio, image_url, website, instagram_url, facebook_url, youtube_url, project_count";
 
 async function queryProfessionals(
-  client: ReturnType<typeof createInsForgeServerClientPublic>,
+  client: NonNullable<ReturnType<typeof createInsForgeServerClientPublicOrNull>>,
   select: string,
   limit: number,
 ) {
@@ -28,7 +31,8 @@ async function queryProfessionals(
 }
 
 export async function getProfessionals(limit = 400): Promise<ProfessionalRow[]> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return [];
   const primary = await queryProfessionals(client, professionalSelectExtended, limit);
   const result = primary.error
     ? await queryProfessionals(client, professionalSelectBase, limit)
@@ -39,7 +43,8 @@ export async function getProfessionals(limit = 400): Promise<ProfessionalRow[]> 
 }
 
 export async function getProfessionalBySlug(slug: string): Promise<ProfessionalRow | null> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return null;
   const primary = await client.database
     .from("professionals")
     .select(professionalSelectExtended)
@@ -78,7 +83,8 @@ export type CompanyRow = {
 };
 
 export async function getCompanies(limit = 400): Promise<CompanyRow[]> {
-  const client = createInsForgeServerClientPublic();
+  const client = createInsForgeServerClientPublicOrNull();
+  if (!client) return [];
   const { data, error } = await client.database
     .from("companies")
     .select("id, slug, name, description, logo_url")
