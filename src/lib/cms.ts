@@ -1,4 +1,4 @@
-export type CmsCollection = "news_items" | "articles" | "products" | "events" | "top_100";
+export type CmsCollection = "news_items" | "articles" | "products" | "events";
 
 export type CmsEntry = {
   id: string;
@@ -184,44 +184,6 @@ const fallback: Record<CmsCollection, CmsEntry[]> = {
       body:
         "Architecture students present graduation projects, experimental housing prototypes, and urban futures frameworks to a jury of practitioners.",
       published_at: "2026-08-20T09:00:00.000Z",
-    },
-  ],
-  top_100: [
-    {
-      id: "top-1",
-      slug: "top-100-2026",
-      title: "Top 100 Roadmap 2026",
-      excerpt:
-        "A route-based annual ranking that maps 100 influential projects shaping architecture and design culture.",
-      category: "Ranking",
-      rank: 1,
-    },
-    {
-      id: "top-2",
-      slug: "top-100-climate-innovation-hub",
-      title: "Climate Innovation Hub",
-      excerpt:
-        "A leading benchmark project for passive systems, public education, and low-carbon material strategy.",
-      category: "Top 100",
-      rank: 7,
-    },
-    {
-      id: "top-3",
-      slug: "top-100-courtyard-urban-lab",
-      title: "Courtyard Urban Living Lab",
-      excerpt:
-        "A mixed-use typology study integrating social courtyards, walkability, and thermal comfort metrics.",
-      category: "Top 100",
-      rank: 18,
-    },
-    {
-      id: "top-4",
-      slug: "top-100-adaptive-reuse-campus",
-      title: "Adaptive Reuse Civic Campus",
-      excerpt:
-        "A high-impact transformation of legacy structures into an active, climate-conscious civic district.",
-      category: "Top 100",
-      rank: 31,
     },
   ],
 };

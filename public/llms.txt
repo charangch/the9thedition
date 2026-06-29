@@ -10,7 +10,6 @@ Contact: support@theninthedition.com
 - /articles — Long-form editorial
 - /archive — Cultural and precedent studies
 - /professionals — Studio and professional directory
-- /top-100 — Curated project lists
 - /newsletter — Reader subscriptions
 - /submission-guidelines — How to submit work for editorial consideration
 

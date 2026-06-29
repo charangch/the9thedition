@@ -15,8 +15,6 @@ type Props = {
   count?: number;
   alts?: string[];
   className?: string;
-  /** When false, hides CMS/workflow placeholder copy under the heading. */
-  showSubtext?: boolean;
 };
 
 function isGeneratedSrc(src: string) {
@@ -32,7 +30,6 @@ export function GeneratedImageGallery({
   count = GENERATED_GALLERY_COUNT,
   alts,
   className,
-  showSubtext = true,
 }: Props) {
   const start = Math.max(0, from);
   const uploaded = imageUrls?.filter(Boolean) ?? [];
@@ -47,13 +44,6 @@ export function GeneratedImageGallery({
   return (
     <section className={className} aria-label="Image gallery">
       <h2 className="font-serif text-2xl text-charcoal">Visual study</h2>
-      {showSubtext ? (
-        <p className="mt-2 text-sm text-muted">
-          {useUploaded
-            ? "Project photography and studies supplied by the design team."
-            : "On-site generated graphics for layout and image SEO—no third-party stock URLs."}
-        </p>
-      ) : null}
       <ul className="mt-8 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {indices.map((i) => {
           const src = useUploaded ? uploaded[i]! : generatedImagePath(collection, itemKey, i);

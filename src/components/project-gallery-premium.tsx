@@ -17,10 +17,6 @@ export function ProjectGalleryPremium({
   return (
     <section className="mt-10">
       <h2 className="font-serif text-2xl text-charcoal">Project Gallery</h2>
-      <p className="mt-2 text-sm text-muted">
-        Frames below are on-site generated graphics for layout and image SEO—swap for project photography when
-        available.
-      </p>
       <div className="mt-4 space-y-4">
         <div className="relative aspect-[16/8] overflow-hidden rounded-xl border border-primary/10">
           <Image

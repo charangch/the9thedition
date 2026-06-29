@@ -1,4 +1,5 @@
 import data from "@/data/architecture-news.json";
+import { sanitizeBodyText, sanitizeExcerpt, sanitizeFaq } from "@/lib/editorial-sanitize";
 
 export type ArchitectureNewsFaq = { question: string; answer: string };
 
@@ -30,8 +31,19 @@ const corpus = data as NewsFile;
 
 const PAGE_SIZE = 12;
 
+function cleanNewsItem(item: ArchitectureNewsItem): ArchitectureNewsItem {
+  const excerpt = sanitizeExcerpt(item.excerpt);
+  return {
+    ...item,
+    excerpt,
+    body: sanitizeBodyText(item.body),
+    faq: sanitizeFaq(item.faq),
+    seo_description: sanitizeExcerpt(item.seo_description) || excerpt,
+  };
+}
+
 export function getAllArchitectureNews(): ArchitectureNewsItem[] {
-  return corpus.items;
+  return corpus.items.map(cleanNewsItem);
 }
 
 export function getArchitectureNewsSlugs(): string[] {
@@ -39,7 +51,8 @@ export function getArchitectureNewsSlugs(): string[] {
 }
 
 export function getArchitectureNewsBySlug(slug: string): ArchitectureNewsItem | undefined {
-  return corpus.items.find((x) => x.slug === slug);
+  const item = corpus.items.find((x) => x.slug === slug);
+  return item ? cleanNewsItem(item) : undefined;
 }
 
 export function getRelatedArchitectureNews(slug: string, limit = 4): ArchitectureNewsItem[] {
@@ -47,7 +60,7 @@ export function getRelatedArchitectureNews(slug: string, limit = 4): Architectur
   if (!current) return [];
   const same = corpus.items.filter((x) => x.slug !== slug && x.category === current.category);
   const other = corpus.items.filter((x) => x.slug !== slug && x.category !== current.category);
-  return [...same, ...other].slice(0, limit);
+  return [...same, ...other].slice(0, limit).map(cleanNewsItem);
 }
 
 export function getArchitectureNewsCategories(): string[] {
@@ -72,7 +85,7 @@ export function listArchitectureNewsPage(
   const safePage = Math.min(Math.max(1, page), totalPages);
   const start = (safePage - 1) * PAGE_SIZE;
   return {
-    items: filtered.slice(start, start + PAGE_SIZE),
+    items: filtered.slice(start, start + PAGE_SIZE).map(cleanNewsItem),
     total,
     page: safePage,
     pageSize: PAGE_SIZE,
@@ -81,5 +94,5 @@ export function listArchitectureNewsPage(
 }
 
 export function getFeaturedArchitectureNews(): ArchitectureNewsItem {
-  return corpus.items[0]!;
+  return cleanNewsItem(corpus.items[0]!);
 }

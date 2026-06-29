@@ -105,7 +105,9 @@ export function ArchitectureNewsArticleJsonLd({
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(newsArticle) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(faqPage) }} />
+      {item.faq.length ? (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(faqPage) }} />
+      ) : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(speakable) }} />
     </>
@@ -119,8 +121,7 @@ export function ArchitectureNewsIndexJsonLd() {
     "@type": "WebSite",
     name: "the9thedition",
     url: SITE,
-    description:
-      "Architecture news, construction industry updates, and building design analysis—structured for search and answer engines.",
+    description: "Architecture news, construction industry updates, and building design analysis from the9thedition.",
     publisher: {
       "@type": "Organization",
       name: "the9thedition",

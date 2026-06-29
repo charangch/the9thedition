@@ -1,5 +1,6 @@
 import type { BuildSpec, ProjectArticle, ProjectDetailMedia } from "@/lib/project-detail-content";
 import { stripInternalProjectCopy } from "@/lib/project-detail-content";
+import { sanitizeExcerpt } from "@/lib/editorial-sanitize";
 import type { PublishedProject } from "@/lib/published-projects";
 import { generatedGalleryPaths } from "@/lib/generated-media";
 
@@ -55,12 +56,6 @@ export function getPublishedProjectArticle(published: PublishedProject): Project
             question: "What is this project about?",
             answer: `${published.title} is documented on the9thedition with build details and photography from the design team.`,
           },
-          {
-            question: "Which region does it reference?",
-            answer: published.location
-              ? `The project is located in ${published.location}.`
-              : "See build details for place-based context.",
-          },
         ];
 
   const uploaded = published.image_urls.filter(Boolean);
@@ -80,7 +75,7 @@ export function getPublishedProjectArticle(published: PublishedProject): Project
   const media: ProjectDetailMedia = {};
 
   return stripInternalProjectCopy({
-    dek: published.excerpt ?? String(form.dek ?? form.shortText ?? ""),
+    dek: sanitizeExcerpt(published.excerpt ?? String(form.dek ?? form.shortText ?? "")),
     paragraphs,
     specs,
     gallery,

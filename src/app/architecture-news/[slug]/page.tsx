@@ -140,23 +140,21 @@ export default async function ArchitectureNewsArticlePage({ params }: { params: 
             count={GENERATED_GALLERY_COUNT - 1}
           />
 
-          <section className="mt-16 border-t border-charcoal/10 pt-12" aria-labelledby="faq-heading">
-            <h2 id="faq-heading" className="font-serif text-2xl text-charcoal">
-              Questions & answers
-            </h2>
-            <p className="mt-2 text-sm text-muted">
-              Concise answers for readers and answer engines (AEO)—verify against your local code and manufacturer
-              data for project work.
-            </p>
-            <dl className="mt-8 space-y-6">
-              {item.faq.map((f, i) => (
-                <div key={i} className="rounded-xl border border-charcoal/10 bg-surface p-5">
-                  <dt className="font-medium text-charcoal">{f.question}</dt>
-                  <dd className="mt-2 text-sm leading-relaxed text-charcoal/80">{f.answer}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
+          {item.faq.length ? (
+            <section className="mt-16 border-t border-charcoal/10 pt-12" aria-labelledby="faq-heading">
+              <h2 id="faq-heading" className="font-serif text-2xl text-charcoal">
+                Questions & answers
+              </h2>
+              <dl className="mt-8 space-y-6">
+                {item.faq.map((f, i) => (
+                  <div key={i} className="rounded-xl border border-charcoal/10 bg-surface p-5">
+                    <dt className="font-medium text-charcoal">{f.question}</dt>
+                    <dd className="mt-2 text-sm leading-relaxed text-charcoal/80">{f.answer}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ) : null}
 
           <aside className="mt-14 border-t border-charcoal/10 pt-12">
             <h2 className="font-serif text-2xl text-charcoal">Related architecture news</h2>

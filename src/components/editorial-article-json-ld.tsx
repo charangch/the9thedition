@@ -104,7 +104,9 @@ export function EditorialArticleJsonLd({
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(article) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(faqPage) }} />
+      {item.faq.length ? (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(faqPage) }} />
+      ) : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(speakable) }} />
     </>
@@ -118,8 +120,7 @@ export function EditorialArticlesIndexJsonLd({ total }: { total: number }) {
     "@type": "WebSite",
     name: "the9thedition",
     url: SITE,
-    description:
-      "Long-form articles on architects, houses, and building products—structured for search, geographic context, and answer engines.",
+    description: "Long-form articles on architects, houses, and building products from the9thedition.",
     publisher: {
       "@type": "Organization",
       name: "the9thedition",

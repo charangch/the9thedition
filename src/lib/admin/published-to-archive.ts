@@ -1,16 +1,18 @@
 import type { ArchiveProject } from "@/lib/archive-projects";
 import type { PublishedProject } from "@/lib/published-projects";
+import { sanitizeExcerpt } from "@/lib/editorial-sanitize";
 import { generatedImagePath } from "@/lib/generated-media";
 
 export function publishedToArchiveProject(p: PublishedProject): ArchiveProject {
   const hero = p.hero_image_url ?? p.image_urls[0] ?? generatedImagePath("projects", p.slug, 0);
   const when = p.archived_at ?? p.published_at ?? new Date().toISOString();
+  const excerpt = sanitizeExcerpt(p.excerpt ?? "");
   return {
     id: `published-${p.slug}`,
     slug: p.slug,
     title: p.title,
-    excerpt: p.excerpt ?? "",
-    content: p.content ?? p.excerpt ?? "",
+    excerpt,
+    content: p.content ?? excerpt,
     category: p.category || "Architecture & Design",
     location: p.location ?? "",
     byline: p.byline ?? "",
@@ -24,7 +26,7 @@ export function publishedToArchiveProject(p: PublishedProject): ArchiveProject {
     faq: [],
     geo_region: p.location ?? "",
     seo_title: `${p.title} | Archive | the9thedition`,
-    seo_description: p.excerpt ?? p.title,
+    seo_description: excerpt || p.title,
     published_at: when,
     date_modified: when,
   };

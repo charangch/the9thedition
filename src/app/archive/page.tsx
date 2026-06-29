@@ -17,7 +17,7 @@ import { getSiteUrl } from "@/lib/site-url";
 
 const PAGE_TITLE = "Project Archive";
 const PAGE_DESC =
-  "Search the the9thedition project archive: cultural, residential, civic, and landscape works with editorial metadata, imagery, and detail pages—optimized for discovery across search, maps, and answer engines.";
+  "Browse cultural, residential, civic, and landscape projects in the the9thedition archive—with photography, credits, and editorial notes.";
 
 export async function generateMetadata({
   searchParams,

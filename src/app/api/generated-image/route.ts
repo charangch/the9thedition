@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildProjectSceneSvg, isCatalogProjectSlug } from "@/lib/procedural-project-scene";
 
-const COLLECTIONS = new Set(["articles", "news", "archive", "top100", "projects"]);
+const COLLECTIONS = new Set(["articles", "news", "archive", "projects"]);
 
 function hash(input: string): number {
   let h = 2166136261;

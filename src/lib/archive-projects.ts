@@ -1,4 +1,5 @@
 import data from "@/data/archive-projects.json";
+import { sanitizeBodyText, sanitizeExcerpt, sanitizeFaq } from "@/lib/editorial-sanitize";
 
 export type ArchiveProjectFaq = { question: string; answer: string };
 
@@ -32,8 +33,19 @@ const corpus = data as ArchiveFile;
 
 const PAGE_SIZE = 12;
 
+function cleanArchiveProject(item: ArchiveProject): ArchiveProject {
+  const excerpt = sanitizeExcerpt(item.excerpt);
+  return {
+    ...item,
+    excerpt,
+    content: sanitizeBodyText(item.content),
+    faq: sanitizeFaq(item.faq),
+    seo_description: sanitizeExcerpt(item.seo_description) || excerpt,
+  };
+}
+
 export function getAllArchiveProjects(): ArchiveProject[] {
-  return corpus.items;
+  return corpus.items.map(cleanArchiveProject);
 }
 
 export function getArchiveProjectSlugs(): string[] {
@@ -41,7 +53,8 @@ export function getArchiveProjectSlugs(): string[] {
 }
 
 export function getArchiveProjectBySlug(slug: string): ArchiveProject | undefined {
-  return corpus.items.find((x) => x.slug === slug);
+  const item = corpus.items.find((x) => x.slug === slug);
+  return item ? cleanArchiveProject(item) : undefined;
 }
 
 export function getArchiveCategories(): string[] {
@@ -53,7 +66,7 @@ export function getRelatedArchiveProjects(slug: string, limit = 4): ArchiveProje
   if (!cur) return [];
   const same = corpus.items.filter((x) => x.slug !== slug && x.category === cur.category);
   const rest = corpus.items.filter((x) => x.slug !== slug && x.category !== cur.category);
-  return [...same, ...rest].slice(0, limit);
+  return [...same, ...rest].slice(0, limit).map(cleanArchiveProject);
 }
 
 export function listArchiveProjects(params: {
@@ -84,7 +97,7 @@ export function listArchiveProjects(params: {
   const safePage = Math.min(Math.max(1, params.page), totalPages);
   const start = (safePage - 1) * PAGE_SIZE;
   return {
-    items: filtered.slice(start, start + PAGE_SIZE),
+    items: filtered.slice(start, start + PAGE_SIZE).map(cleanArchiveProject),
     total,
     page: safePage,
     pageSize: PAGE_SIZE,
@@ -93,5 +106,5 @@ export function listArchiveProjects(params: {
 }
 
 export function getFeaturedArchiveProject(): ArchiveProject {
-  return corpus.items[0]!;
+  return cleanArchiveProject(corpus.items[0]!);
 }

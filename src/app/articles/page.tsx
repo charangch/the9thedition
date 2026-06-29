@@ -14,7 +14,7 @@ import { getSiteUrl } from "@/lib/site-url";
 
 const PAGE_TITLE = "Articles";
 const PAGE_DESC =
-  "Long-form editorial features on architects, houses, and building products—written for readers, search, answer engines, and geographic discovery.";
+  "Long-form editorial features on architects, houses, and building products from the9thedition.";
 
 export async function generateMetadata({
   searchParams,

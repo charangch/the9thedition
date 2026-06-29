@@ -14,7 +14,7 @@ import { getSiteUrl } from "@/lib/site-url";
 
 const PAGE_TITLE = "Architecture News";
 const PAGE_DESC =
-  "Latest architecture news, construction industry updates, building technology, materials, urban development, and design policy—structured for search, answer engines, and geographic context.";
+  "Architecture news, construction updates, building technology, materials, urban development, and design policy from the9thedition.";
 
 export async function generateMetadata({
   searchParams,

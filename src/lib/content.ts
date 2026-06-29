@@ -7,7 +7,6 @@ export const navItems = [
   { href: "/archive", label: "Archive" },
   { href: "/awards", label: "Awards" },
   { href: "/submission-guidelines", label: "Submit" },
-  { href: "/top-100", label: "Top 100" },
 ];
 
 export const primaryNavItems = navItems.slice(0, 5);
@@ -194,7 +193,7 @@ export const directoryPicks = [
 export const newsletterHighlights = [
   "The 9 homes everyone in design circles is sharing this week",
   "Material intelligence: lime, laterite, and timber in modern projects",
-  "Top 100 watchlist: practices redefining Indian luxury architecture",
+  "Directory watchlist: practices redefining Indian luxury architecture",
 ];
 
 /** Homepage “Editor’s radar” strip — each line links somewhere real (projects, sections, or lists). */

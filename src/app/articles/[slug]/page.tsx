@@ -162,23 +162,21 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
               alts={editorial.image_alts}
             />
 
-            <section className="mt-16 border-t border-charcoal/10 pt-12" aria-labelledby="article-faq-heading">
-              <h2 id="article-faq-heading" className="font-serif text-2xl text-charcoal">
-                Questions & answers
-              </h2>
-              <p className="mt-2 text-sm text-muted">
-                Short answers for readers and answer engines (AEO)—verify against local codes and manufacturer data for
-                project work.
-              </p>
-              <dl className="mt-8 space-y-6">
-                {editorial.faq.map((f, i) => (
-                  <div key={i} className="rounded-xl border border-charcoal/10 bg-surface p-5">
-                    <dt className="font-medium text-charcoal">{f.question}</dt>
-                    <dd className="mt-2 text-sm leading-relaxed text-charcoal/80">{f.answer}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
+            {editorial.faq.length ? (
+              <section className="mt-16 border-t border-charcoal/10 pt-12" aria-labelledby="article-faq-heading">
+                <h2 id="article-faq-heading" className="font-serif text-2xl text-charcoal">
+                  Questions & answers
+                </h2>
+                <dl className="mt-8 space-y-6">
+                  {editorial.faq.map((f, i) => (
+                    <div key={i} className="rounded-xl border border-charcoal/10 bg-surface p-5">
+                      <dt className="font-medium text-charcoal">{f.question}</dt>
+                      <dd className="mt-2 text-sm leading-relaxed text-charcoal/80">{f.answer}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            ) : null}
 
             <aside className="mt-14 border-t border-charcoal/10 pt-12">
               <h2 className="font-serif text-2xl text-charcoal">Related articles</h2>

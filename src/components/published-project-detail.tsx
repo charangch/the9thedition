@@ -223,7 +223,6 @@ export async function PublishedProjectDetail({ published, allPublished }: Props)
               title={published.title}
               imageUrls={galleryForStudy.length ? galleryForStudy : article.gallery}
               alts={article.imageAlts}
-              showSubtext={false}
             />
 
             {article.faq.length ? (

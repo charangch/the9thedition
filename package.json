@@ -10,7 +10,6 @@
     "generate:architecture-news": "node scripts/generate-architecture-news.mjs",
     "generate:archive-projects": "node scripts/generate-archive-projects.mjs",
     "generate:editorial-articles": "node scripts/generate-editorial-articles.mjs",
-    "generate:top100-projects": "node scripts/generate-top100-projects.mjs",
     "bootstrap:admin": "node scripts/bootstrap-admin.mjs",
     "create-sample-admin": "node --env-file=.env.local scripts/create-sample-admin.mjs",
     "generate:submission-pdf": "node scripts/generate-submission-template-pdf.mjs",

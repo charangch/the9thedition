@@ -3,7 +3,7 @@ export const GENERATED_GALLERY_COUNT = 20;
 /** Bump to invalidate aggressively cached generated image URLs. */
 export const GENERATED_MEDIA_VERSION = "20260625-procedural-buildings-v4";
 
-export type GeneratedCollection = "articles" | "news" | "archive" | "top100" | "projects";
+export type GeneratedCollection = "articles" | "news" | "archive" | "projects";
 
 export function generatedImagePath(
   collection: GeneratedCollection,

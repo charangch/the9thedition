@@ -5,7 +5,6 @@ import { getArchiveProjectSlugs } from "@/lib/archive-projects";
 import { getEditorialArticleSlugs } from "@/lib/editorial-articles";
 import { getAllProjectSlugs } from "@/lib/project-catalog";
 import { getPublishedProjects } from "@/lib/published-projects";
-import { getTop100Slugs } from "@/lib/top100-projects";
 import { getSiteUrl } from "@/lib/site-url";
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
@@ -31,7 +30,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const newsSlugs = getArchitectureNewsSlugs();
   const archiveSlugs = getArchiveProjectSlugs();
   const editorialSlugs = getEditorialArticleSlugs();
-  const top100Slugs = getTop100Slugs();
   const catalogProjectSlugs = getAllProjectSlugs();
 
   let publishedRows: Awaited<ReturnType<typeof getPublishedProjects>> = [];
@@ -62,13 +60,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const top100Entries: MetadataRoute.Sitemap = top100Slugs.map((slug) => ({
-    url: `${base}/top-100/${slug}`,
-    lastModified: now,
-    changeFrequency: "monthly",
-    priority: 0.74,
-  }));
-
   const catalogProjectEntries: MetadataRoute.Sitemap = catalogProjectSlugs.map((slug) => ({
     url: `${base}/projects/${slug}`,
     lastModified: now,
@@ -96,7 +87,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/archive`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/projects`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
     { url: `${base}/articles`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/top-100`, lastModified: now, changeFrequency: "weekly", priority: 0.82 },
     { url: `${base}/professionals`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/newsletter`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/awards`, lastModified: now, changeFrequency: "monthly", priority: 0.62 },
@@ -113,7 +103,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...newsEntries,
     ...archiveEntries,
     ...articleEntries,
-    ...top100Entries,
     ...catalogProjectEntries,
     ...dbProjectEntries,
     ...professionalEntries,

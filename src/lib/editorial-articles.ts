@@ -1,4 +1,5 @@
 import data from "@/data/editorial-articles.json";
+import { sanitizeBodyText, sanitizeExcerpt, sanitizeFaq } from "@/lib/editorial-sanitize";
 
 export type EditorialFaq = { question: string; answer: string };
 
@@ -30,6 +31,17 @@ const corpus = data as EditorialFile;
 
 const PAGE_SIZE = 12;
 
+function cleanArticle(item: EditorialArticle): EditorialArticle {
+  const excerpt = sanitizeExcerpt(item.excerpt);
+  return {
+    ...item,
+    excerpt,
+    body: sanitizeBodyText(item.body),
+    faq: sanitizeFaq(item.faq),
+    seo_description: sanitizeExcerpt(item.seo_description) || excerpt,
+  };
+}
+
 function normalizeQuery(q: string | null | undefined): string | null {
   const t = q?.trim();
   return t?.length ? t : null;
@@ -53,7 +65,7 @@ function matchesQuery(item: EditorialArticle, query: string | null): boolean {
 }
 
 export function getAllEditorialArticles(): EditorialArticle[] {
-  return corpus.items;
+  return corpus.items.map(cleanArticle);
 }
 
 export function getEditorialArticleSlugs(): string[] {
@@ -61,7 +73,8 @@ export function getEditorialArticleSlugs(): string[] {
 }
 
 export function getEditorialArticleBySlug(slug: string): EditorialArticle | undefined {
-  return corpus.items.find((x) => x.slug === slug);
+  const item = corpus.items.find((x) => x.slug === slug);
+  return item ? cleanArticle(item) : undefined;
 }
 
 export function getEditorialCategories(): string[] {
@@ -69,7 +82,7 @@ export function getEditorialCategories(): string[] {
 }
 
 export function getFeaturedEditorialArticle(): EditorialArticle {
-  return corpus.items[0]!;
+  return cleanArticle(corpus.items[0]!);
 }
 
 export function getRelatedEditorialArticles(slug: string, limit = 4): EditorialArticle[] {
@@ -77,7 +90,7 @@ export function getRelatedEditorialArticles(slug: string, limit = 4): EditorialA
   if (!current) return [];
   const same = corpus.items.filter((x) => x.slug !== slug && x.category === current.category);
   const other = corpus.items.filter((x) => x.slug !== slug && x.category !== current.category);
-  return [...same, ...other].slice(0, limit);
+  return [...same, ...other].slice(0, limit).map(cleanArticle);
 }
 
 export function listEditorialArticlesPage(
@@ -101,7 +114,7 @@ export function listEditorialArticlesPage(
   const safePage = Math.min(Math.max(1, page), totalPages);
   const start = (safePage - 1) * PAGE_SIZE;
   return {
-    items: filtered.slice(start, start + PAGE_SIZE),
+    items: filtered.slice(start, start + PAGE_SIZE).map(cleanArticle),
     total,
     page: safePage,
     pageSize: PAGE_SIZE,

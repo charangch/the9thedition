@@ -292,7 +292,6 @@ export default async function ProjectDetailPage({ params }: Props) {
                 title={staticProject.title}
                 imageUrls={catalogProjectGalleryPaths(staticProject.slug).slice(1)}
                 alts={article.imageAlts.slice(1, CATALOG_PROJECT_IMAGE_COUNT)}
-                showSubtext={false}
               />
 
               {article.media.pdfUrl ? (
@@ -303,19 +302,21 @@ export default async function ProjectDetailPage({ params }: Props) {
                 />
               ) : null}
 
-              <section className="mt-14 border-t border-charcoal/10 pt-10" aria-labelledby="project-faq-heading">
-                <h2 id="project-faq-heading" className="font-serif text-2xl text-charcoal">
-                  Questions & answers
-                </h2>
-                <dl className="mt-8 space-y-6">
-                  {article.faq.map((f, i) => (
-                    <div key={i} className="rounded-xl border border-charcoal/10 bg-surface p-5">
-                      <dt className="font-medium text-charcoal">{f.question}</dt>
-                      <dd className="mt-2 text-sm leading-relaxed text-charcoal/80">{f.answer}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
+              {article.faq.length ? (
+                <section className="mt-14 border-t border-charcoal/10 pt-10" aria-labelledby="project-faq-heading">
+                  <h2 id="project-faq-heading" className="font-serif text-2xl text-charcoal">
+                    Questions & answers
+                  </h2>
+                  <dl className="mt-8 space-y-6">
+                    {article.faq.map((f, i) => (
+                      <div key={i} className="rounded-xl border border-charcoal/10 bg-surface p-5">
+                        <dt className="font-medium text-charcoal">{f.question}</dt>
+                        <dd className="mt-2 text-sm leading-relaxed text-charcoal/80">{f.answer}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              ) : null}
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link

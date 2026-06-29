@@ -69,7 +69,9 @@ export function ArchiveProjectJsonLd({ item, path }: { item: ArchiveProject; pat
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(project) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(faq) }} />
+      {item.faq.length ? (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(faq) }} />
+      ) : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(speakable) }} />
     </>
   );
@@ -83,7 +85,7 @@ export function ArchiveIndexJsonLd() {
     name: "Project Archive",
     url: `${SITE}/archive`,
     description:
-      "Searchable architecture project archive: cultural, residential, educational, and civic works with editorial metadata for SEO, GEO, and answer engines.",
+      "Architecture project archive: cultural, residential, educational, and civic works with photography and editorial notes.",
     isPartOf: { "@type": "WebSite", name: "the9thedition", url: SITE },
   };
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(collection) }} />;

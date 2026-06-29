@@ -29,6 +29,8 @@ const nextConfig = {
         destination: "/documents/the9thedition-premium-submission-template.pdf",
         permanent: true,
       },
+      { source: "/top-100", destination: "/projects", permanent: true },
+      { source: "/top-100/:slug", destination: "/projects", permanent: true },
     ];
   },
   turbopack: {

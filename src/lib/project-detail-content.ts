@@ -1,4 +1,5 @@
 import type { ArchitectProfile } from "@/lib/architects";
+import { EDITORIAL_FILLER_PATTERN, sanitizeExcerpt, sanitizeFaq } from "@/lib/editorial-sanitize";
 import { generatedGalleryPaths } from "@/lib/generated-media";
 import { catalogProjectGalleryPaths } from "@/lib/catalog-project-images";
 import { getProjectLongForm } from "@/lib/project-long-form";
@@ -140,8 +141,7 @@ function ensureLengthBetween500And700(
 }
 
 /** Filters CMS/workflow placeholder copy from project body text (catalog + published). */
-export const INTERNAL_WORKFLOW_COPY_PATTERN =
-  /\b(SEO|GEO|AEO)\b|on-site procedural|on-site generated|answer engine|search and answer engines|image SEO|procedural graphics|Editorial film selection|Reader save disabled|Public reader accounts|Structured for answer engines|structured metadata for search|optimized for discovery/i;
+export const INTERNAL_WORKFLOW_COPY_PATTERN = EDITORIAL_FILLER_PATTERN;
 
 function stripInternalCatalogCopy(article: ProjectArticle): ProjectArticle {
   return stripInternalProjectCopy(article);
@@ -154,11 +154,7 @@ export function stripInternalProjectCopy(article: ProjectArticle): ProjectArticl
     specs: article.specs.filter(
       (row) => row.label !== "Imagery" && !INTERNAL_WORKFLOW_COPY_PATTERN.test(row.value),
     ),
-    faq: article.faq.filter(
-      (item) =>
-        !INTERNAL_WORKFLOW_COPY_PATTERN.test(item.question) &&
-        !INTERNAL_WORKFLOW_COPY_PATTERN.test(item.answer),
-    ),
+    faq: sanitizeFaq(article.faq),
     media: {
       ...article.media,
       videoUrl: undefined,
@@ -196,32 +192,17 @@ export function getProjectArticle(
   let imageAlts: string[];
 
   if (lf) {
-    dek = lf.dek;
+    dek = sanitizeExcerpt(lf.dek);
     paragraphs = lf.paragraphs;
     specs = [...baseSpecs(project, architect), ...(lf.extraSpecs ?? [])];
     faq = lf.faq;
     seo = lf.seo;
     imageAlts = lf.imageAlts;
   } else {
-    dek = project.excerpt;
+    dek = sanitizeExcerpt(project.excerpt);
     paragraphs = fallbackParagraphs(project, architect);
     specs = baseSpecs(project, architect);
-    faq = [
-      {
-        question: "What is this project about?",
-        answer: `${project.title} is documented as part of the9thedition’s editorial project catalog.`,
-      },
-      {
-        question: "Which region does it reference?",
-        answer: project.location
-          ? `Location signals focus on ${project.location}; confirm climate and code data for your own site.`
-          : "See build details for place-based context; verify locally for specification work.",
-      },
-      {
-        question: "How should images be interpreted?",
-        answer: "Gallery frames illustrate layout and material studies; commissioned photography may replace them when available.",
-      },
-    ];
+    faq = [];
     seo = {
       title: `${project.title} | Projects | the9thedition`,
       description: project.excerpt.slice(0, 160),
