@@ -7,7 +7,11 @@ import { BlockRenderer } from "@/components/block-renderer";
 import { SiteHeader } from "@/components/site-header";
 import { getCmsEntryBySlug } from "@/lib/cms";
 import { getEditorialArticleBySlug, getEditorialArticleSlugs, getRelatedEditorialArticles } from "@/lib/editorial-articles";
-import { absoluteGeneratedImageUrl, GENERATED_GALLERY_COUNT } from "@/lib/generated-media";
+import {
+  absoluteEditorialImageUrl,
+  editorialGalleryPaths,
+  editorialHeroPath,
+} from "@/lib/editorial-collection-images";
 import { getPublishedArticleBySlug } from "@/lib/published-articles";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -35,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (editorial) {
     const site = getSiteUrl();
     const url = `${site}/articles/${editorial.slug}`;
-    const og = absoluteGeneratedImageUrl(site, "articles", editorial.slug, 0);
+    const og = absoluteEditorialImageUrl(site, "articles", editorial.slug, 0);
     return {
       title: editorial.seo_title,
       description: editorial.seo_description,
@@ -141,6 +145,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
             title={editorial.title}
             alt={editorial.image_alts[0]}
             priority
+            imageSrc={editorialHeroPath("articles", editorial.slug)}
           />
 
           <div className="container-premium max-w-3xl py-12 md:py-16">
@@ -157,8 +162,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
               collection="articles"
               itemKey={editorial.slug}
               title={editorial.title}
-              from={1}
-              count={GENERATED_GALLERY_COUNT - 1}
+              imageUrls={editorialGalleryPaths("articles", editorial.slug).slice(1)}
               alts={editorial.image_alts}
             />
 

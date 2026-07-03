@@ -3,6 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { buildPageMetadata } from "@/lib/seo-metadata";
 import { SITE_DESCRIPTION } from "@/lib/site-metadata";
+import { HomepageJsonLd } from "@/components/homepage-json-ld";
+import { SiteSectionsIndex } from "@/components/site-sections-index";
 import { LikeShareBar } from "@/components/like-share-bar";
 import { SiteHeader } from "@/components/site-header";
 import { EditorsRadar } from "@/components/editors-radar";
@@ -29,7 +31,7 @@ import { LatestProjectsSection } from "@/components/home/latest-projects-section
 import { getFeaturedPublishedProjects, getTrendingPublishedProjects } from "@/lib/published-projects";
 
 export const metadata = buildPageMetadata({
-  title: "Architecture, design & editorial intelligence",
+  title: "the9thedition — Architecture, Design & Editorial Intelligence",
   description: SITE_DESCRIPTION,
   path: "/",
 });
@@ -52,6 +54,7 @@ export default async function Home() {
 
   return (
     <div className="pb-16">
+      <HomepageJsonLd />
       <SiteHeader />
 
       <EditorsRadar items={editorsRadar} />
@@ -510,6 +513,8 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <SiteSectionsIndex />
     </div>
   );
 }

@@ -4,13 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { BlockRenderer } from "@/components/block-renderer";
 import { LikeShareBar } from "@/components/like-share-bar";
-import { generatedImagePath } from "@/lib/generated-media";
+import { editorialGalleryPaths, editorialHeroPath } from "@/lib/editorial-collection-images";
 import type { ArchiveProjectViewModel } from "@/lib/builder/archive-project-view-model";
 
 function heroSrc(item: ArchiveProjectViewModel["item"]) {
   const url = item.hero_image_url?.trim();
   if (url && (url.startsWith("http") || url.startsWith("/"))) return url;
-  return generatedImagePath("archive", item.slug, 0);
+  return editorialHeroPath("archive", item.slug);
 }
 
 export function ArchiveProjectPresentation({ model }: { model: ArchiveProjectViewModel }) {
@@ -18,8 +18,8 @@ export function ArchiveProjectPresentation({ model }: { model: ArchiveProjectVie
   const hero = heroSrc(item);
   const gallery =
     item.image_urls?.length > 0
-      ? item.image_urls
-      : Array.from({ length: 3 }, (_, i) => generatedImagePath("archive", item.slug, i));
+      ? item.image_urls.slice(0, 6)
+      : editorialGalleryPaths("archive", item.slug);
 
   return (
     <main className="container-premium pb-16 pt-10">
@@ -63,7 +63,7 @@ export function ArchiveProjectPresentation({ model }: { model: ArchiveProjectVie
             <section className="rounded-2xl border border-primary/10 bg-surface p-5">
               <h2 className="font-serif text-2xl">Gallery</h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {gallery.slice(0, 8).map((src, i) => (
+                {gallery.map((src, i) => (
                   <div key={`${src}-${i}`} className="relative aspect-[4/3] overflow-hidden rounded-lg bg-charcoal/5">
                     <Image
                       src={src}
@@ -96,12 +96,11 @@ export function ArchiveProjectPresentation({ model }: { model: ArchiveProjectVie
                 <Link href={`/archive/${rel.slug}`} className="group block overflow-hidden rounded-lg border border-primary/12 bg-white">
                   <div className="relative aspect-[16/10] bg-charcoal/5">
                     <Image
-                      src={generatedImagePath("archive", rel.slug, 0)}
+                      src={editorialHeroPath("archive", rel.slug)}
                       alt={rel.title}
                       fill
                       className="object-cover transition group-hover:scale-[1.02]"
                       sizes="25vw"
-                      unoptimized
                     />
                   </div>
                   <p className="p-3 font-serif text-sm leading-snug group-hover:text-primary">{rel.title}</p>

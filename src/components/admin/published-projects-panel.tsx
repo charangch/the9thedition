@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatApiError } from "@/lib/admin/format-api-error";
 
-const SITE = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.theninthedition.com").replace(/\/$/, "");
+const SITE = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://theninthedition.com").replace(/\/$/, "");
 
 type PublishedItem = {
   slug: string;

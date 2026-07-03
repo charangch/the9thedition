@@ -58,6 +58,8 @@ const nextConfig = {
       { pathname: "/images/brand/edition-arch-logo.png" },
       { pathname: "/images/brand/**" },
       { pathname: "/images/projects/**" },
+      { pathname: "/images/archive/**" },
+      { pathname: "/images/articles/**" },
     ],
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",

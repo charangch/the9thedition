@@ -5,7 +5,7 @@ import { ArchiveProjectPresentation } from "@/components/archive-project-present
 import { SiteHeader } from "@/components/site-header";
 import { buildArchiveProjectViewModel } from "@/lib/builder/archive-project-view-model";
 import { publishedToArchiveProject } from "@/lib/admin/published-to-archive";
-import { absoluteGeneratedImageUrl } from "@/lib/generated-media";
+import { absoluteEditorialImageUrl } from "@/lib/editorial-collection-images";
 import { getArchiveProjectBySlug, getArchiveProjectSlugs } from "@/lib/archive-projects";
 import { getArchivedPublishedBySlug } from "@/lib/published-projects";
 import { getSiteUrl } from "@/lib/site-url";
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       ? hero.startsWith("/")
         ? `${site}${hero}`
         : hero
-      : absoluteGeneratedImageUrl(site, "archive", item.slug, 0);
+      : absoluteEditorialImageUrl(site, "archive", item.slug, 0);
   return {
     title: item.seo_title,
     description: item.seo_description,

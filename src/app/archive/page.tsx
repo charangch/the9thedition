@@ -12,7 +12,7 @@ import {
 } from "@/lib/archive-projects";
 import { publishedToArchiveProject } from "@/lib/admin/published-to-archive";
 import { getArchivedPublishedForArchive } from "@/lib/published-projects";
-import { generatedImagePath } from "@/lib/generated-media";
+import { editorialHeroPath } from "@/lib/editorial-collection-images";
 import { getSiteUrl } from "@/lib/site-url";
 
 const PAGE_TITLE = "Project Archive";
@@ -180,13 +180,12 @@ export default async function ArchivePage({
                 <Link href={`/archive/${featured.slug}`} className="group grid gap-0 lg:grid-cols-2">
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-charcoal/5 lg:aspect-auto lg:min-h-[360px]">
                     <Image
-                      src={generatedImagePath("archive", featured.slug, 0)}
+                      src={editorialHeroPath("archive", featured.slug)}
                       alt={featured.title}
                       fill
                       className="object-cover transition duration-500 group-hover:scale-[1.02]"
                       sizes="(max-width: 1024px) 100vw, 50vw"
                       priority
-                      unoptimized
                     />
                   </div>
                   <div className="flex flex-col justify-center p-8 md:p-12">
@@ -223,12 +222,11 @@ export default async function ArchivePage({
                     <Link href={`/archive/${project.slug}`} className="group block flex-1">
                       <div className="relative aspect-[16/10] w-full overflow-hidden bg-charcoal/5">
                         <Image
-                          src={generatedImagePath("archive", project.slug, 0)}
+                          src={editorialHeroPath("archive", project.slug)}
                           alt={project.title}
                           fill
                           className="object-cover transition duration-500 group-hover:scale-[1.03]"
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          unoptimized
                         />
                       </div>
                       <div className="flex flex-1 flex-col p-5">

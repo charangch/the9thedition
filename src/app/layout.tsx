@@ -4,7 +4,7 @@ import { CookieConsent } from "@/components/cookie-consent";
 import { HasSignedInMarker } from "@/components/has-signed-in-marker";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteJsonLd } from "@/components/site-json-ld";
-import { SITE_BRAND, SITE_DESCRIPTION } from "@/lib/site-metadata";
+import { SITE_BRAND, SITE_DESCRIPTION, SITE_KEYWORDS } from "@/lib/site-metadata";
 import { defaultOpenGraphImages } from "@/lib/seo-metadata";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
@@ -28,10 +28,11 @@ const siteUrl = getSiteUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${SITE_BRAND} | Architecture, design & culture`,
+    default: "the9thedition | The 9th Edition — Architecture, Design & Culture",
     template: `%s | ${SITE_BRAND}`,
   },
   description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
   applicationName: SITE_BRAND,
   authors: [{ name: SITE_BRAND, url: siteUrl }],
   openGraph: {
@@ -39,13 +40,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: siteUrl,
     siteName: SITE_BRAND,
-    title: `${SITE_BRAND} | Architecture, design & culture`,
+    title: "the9thedition | The 9th Edition — Architecture, Design & Culture",
     description: SITE_DESCRIPTION,
     images: defaultOpenGraphImages(),
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_BRAND} | Architecture, design & culture`,
+    title: "the9thedition | The 9th Edition — Architecture, Design & Culture",
     description: SITE_DESCRIPTION,
   },
   robots: {
@@ -54,6 +55,9 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true },
   },
   alternates: { canonical: siteUrl },
+  verification: {
+    google: "google1c6f87315d8d961e",
+  },
   icons: {
     icon: [{ url: "/the9th-edition-logo.png", type: "image/png" }],
   },

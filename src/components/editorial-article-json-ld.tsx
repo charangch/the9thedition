@@ -1,5 +1,5 @@
 import type { EditorialArticle } from "@/lib/editorial-articles";
-import { absoluteGeneratedImageUrl, GENERATED_GALLERY_COUNT } from "@/lib/generated-media";
+import { editorialGalleryPaths } from "@/lib/editorial-collection-images";
 import { getSiteUrl } from "@/lib/site-url";
 
 function jsonLdString(data: unknown) {
@@ -15,9 +15,7 @@ export function EditorialArticleJsonLd({
 }) {
   const SITE = getSiteUrl();
   const url = `${SITE}${urlPath}`;
-  const images = Array.from({ length: GENERATED_GALLERY_COUNT }, (_, i) =>
-    absoluteGeneratedImageUrl(SITE, "articles", item.slug, i),
-  );
+  const images = editorialGalleryPaths("articles", item.slug).map((path) => `${SITE}${path}`);
 
   const article = {
     "@context": "https://schema.org",

@@ -9,6 +9,8 @@ type Props = {
   title: string;
   /** When set, renders these URLs instead of procedural generated frames. */
   imageUrls?: string[];
+  /** Single hero URL override (local editorial JPEGs). */
+  imageSrc?: string;
   /** Inclusive start index (default 0). */
   from?: number;
   /** Number of frames to render (default: full gallery length). */
@@ -19,6 +21,10 @@ type Props = {
 
 function isGeneratedSrc(src: string) {
   return src.startsWith("/api/generated-image");
+}
+
+function useUnoptimized(src: string) {
+  return isGeneratedSrc(src);
 }
 
 export function GeneratedImageGallery({
@@ -57,7 +63,7 @@ export function GeneratedImageGallery({
                   fill
                   className="object-cover"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                  unoptimized={isGeneratedSrc(src)}
+                  unoptimized={useUnoptimized(src)}
                 />
               </figure>
             </li>
@@ -75,6 +81,7 @@ export function GeneratedImageHero({
   title,
   alt,
   priority,
+  imageSrc,
 }: {
   collection: GeneratedCollection;
   itemKey: string;
@@ -82,8 +89,9 @@ export function GeneratedImageHero({
   title: string;
   alt?: string;
   priority?: boolean;
+  imageSrc?: string;
 }) {
-  const src = generatedImagePath(collection, itemKey, index);
+  const src = imageSrc ?? generatedImagePath(collection, itemKey, index);
   const resolvedAlt = alt ?? `${title} — lead visual`;
   return (
     <div className="relative aspect-[21/9] w-full max-h-[min(72vh,720px)] bg-charcoal/5 md:aspect-[2.4/1]">
@@ -94,7 +102,7 @@ export function GeneratedImageHero({
         className="object-cover"
         priority={priority}
         sizes="100vw"
-        unoptimized={isGeneratedSrc(src)}
+        unoptimized={useUnoptimized(src)}
       />
     </div>
   );

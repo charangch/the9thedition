@@ -9,7 +9,7 @@ import {
   getFeaturedEditorialArticle,
   listEditorialArticlesPage,
 } from "@/lib/editorial-articles";
-import { generatedImagePath } from "@/lib/generated-media";
+import { editorialHeroPath } from "@/lib/editorial-collection-images";
 import { getSiteUrl } from "@/lib/site-url";
 
 const PAGE_TITLE = "Articles";
@@ -181,13 +181,12 @@ export default async function ArticlesPage({
                 <Link href={`/articles/${featured.slug}`} className="group grid gap-0 lg:grid-cols-2">
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-charcoal/5 lg:aspect-auto lg:min-h-[380px]">
                     <Image
-                      src={generatedImagePath("articles", featured.slug, 0)}
+                      src={editorialHeroPath("articles", featured.slug)}
                       alt={featured.image_alts[0] ?? featured.title}
                       fill
                       className="object-cover transition duration-500 group-hover:scale-[1.02]"
                       sizes="(max-width: 1024px) 100vw, 50vw"
                       priority
-                      unoptimized
                     />
                   </div>
                   <div className="flex flex-col justify-center p-8 md:p-12">
@@ -212,12 +211,11 @@ export default async function ArticlesPage({
                     <Link href={`/articles/${item.slug}`} className="group block">
                       <div className="relative aspect-[16/10] w-full overflow-hidden bg-charcoal/5">
                         <Image
-                          src={generatedImagePath("articles", item.slug, 0)}
+                          src={editorialHeroPath("articles", item.slug)}
                           alt={item.image_alts[0] ?? item.title}
                           fill
                           className="object-cover transition duration-500 group-hover:scale-[1.03]"
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          unoptimized
                         />
                       </div>
                       <div className="flex flex-1 flex-col p-5">

@@ -1,5 +1,5 @@
 import type { ArchiveProject } from "@/lib/archive-projects";
-import { absoluteGeneratedImageUrl, GENERATED_GALLERY_COUNT } from "@/lib/generated-media";
+import { editorialGalleryPaths } from "@/lib/editorial-collection-images";
 import { getSiteUrl } from "@/lib/site-url";
 
 function jsonLdString(data: unknown) {
@@ -9,9 +9,7 @@ function jsonLdString(data: unknown) {
 export function ArchiveProjectJsonLd({ item, path }: { item: ArchiveProject; path: string }) {
   const SITE = getSiteUrl();
   const url = `${SITE}${path}`;
-  const images = Array.from({ length: GENERATED_GALLERY_COUNT }, (_, i) =>
-    absoluteGeneratedImageUrl(SITE, "archive", item.slug, i),
-  );
+  const images = editorialGalleryPaths("archive", item.slug).map((path) => `${SITE}${path}`);
 
   const project = {
     "@context": "https://schema.org",

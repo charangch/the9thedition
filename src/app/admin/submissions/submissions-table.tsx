@@ -27,7 +27,7 @@ import type { ProfessionalRow } from "@/lib/professionals-db";
 import { getArchitectBySlug } from "@/lib/architects";
 import { slugifyProject } from "@/lib/submission-template";
 
-const PRODUCTION_SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.theninthedition.com").replace(
+const PRODUCTION_SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://theninthedition.com").replace(
   /\/$/,
   "",
 );

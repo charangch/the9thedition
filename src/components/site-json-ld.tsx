@@ -1,4 +1,5 @@
 import { navItems } from "@/lib/content";
+import { SITE_SECTIONS } from "@/lib/site-sections";
 import { SITE_BRAND, SITE_DESCRIPTION } from "@/lib/site-metadata";
 import { SITE_FACEBOOK_URL, SITE_INSTAGRAM_URL } from "@/lib/site-social";
 import { getSiteUrl } from "@/lib/site-url";
@@ -7,7 +8,7 @@ function jsonLdScript(data: Record<string, unknown>) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }}
     />
   );
 }
@@ -18,7 +19,9 @@ export function SiteJsonLd() {
   const organization = {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${base}/#organization`,
     name: SITE_BRAND,
+    alternateName: ["the9thedition", "theninthedition", "The 9th Edition"],
     url: base,
     description: SITE_DESCRIPTION,
     logo: `${base}/images/brand/edition-arch-logo.png`,
@@ -28,13 +31,27 @@ export function SiteJsonLd() {
   const website = {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": `${base}/#website`,
     name: SITE_BRAND,
+    alternateName: ["the9thedition", "theninthedition"],
     url: base,
     description: SITE_DESCRIPTION,
-    publisher: { "@id": `${base}#organization` },
+    publisher: { "@id": `${base}/#organization` },
+    inLanguage: "en",
+    hasPart: SITE_SECTIONS.map((section) => ({
+      "@type": "WebPage",
+      "@id": `${base}${section.href}`,
+      name: section.title,
+      url: `${base}${section.href}`,
+      description: section.description,
+    })),
     potentialAction: {
-      "@type": "ReadAction",
-      target: base,
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${base}/projects?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
     },
   };
 
@@ -50,11 +67,9 @@ export function SiteJsonLd() {
     })),
   };
 
-  const orgWithId = { ...organization, "@id": `${base}#organization` };
-
   return (
     <>
-      {jsonLdScript(orgWithId)}
+      {jsonLdScript(organization)}
       {jsonLdScript(website)}
       {jsonLdScript(navigation)}
     </>

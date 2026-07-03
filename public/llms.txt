@@ -1,7 +1,7 @@
 # The 9th Edition
 # Architecture, design, and editorial intelligence — structured discovery for humans and tools.
 
-Site: https://www.theninthedition.com
+Site: https://theninthedition.com
 Contact: support@theninthedition.com
 
 ## Primary sections
