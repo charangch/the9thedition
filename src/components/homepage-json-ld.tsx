@@ -1,5 +1,5 @@
 import { SITE_SECTIONS } from "@/lib/site-sections";
-import { SITE_HOME_TITLE, SITE_DESCRIPTION } from "@/lib/site-metadata";
+import { SITE_BRAND, SITE_HOME_TITLE, SITE_DESCRIPTION } from "@/lib/site-metadata";
 import { getSiteUrl } from "@/lib/site-url";
 
 function jsonLdString(data: unknown) {
