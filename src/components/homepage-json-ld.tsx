@@ -1,5 +1,5 @@
 import { SITE_SECTIONS } from "@/lib/site-sections";
-import { SITE_BRAND, SITE_DESCRIPTION } from "@/lib/site-metadata";
+import { SITE_HOME_TITLE, SITE_DESCRIPTION } from "@/lib/site-metadata";
 import { getSiteUrl } from "@/lib/site-url";
 
 function jsonLdString(data: unknown) {
@@ -15,7 +15,7 @@ export function HomepageJsonLd() {
     "@type": "WebPage",
     "@id": `${base}/#homepage`,
     url: `${base}/`,
-    name: `${SITE_BRAND} — Architecture, Design & Culture`,
+    name: SITE_HOME_TITLE,
     description: SITE_DESCRIPTION,
     isPartOf: { "@id": `${base}/#website` },
     about: { "@id": `${base}/#organization` },

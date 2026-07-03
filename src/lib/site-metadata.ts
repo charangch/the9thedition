@@ -8,6 +8,9 @@ export const SITE_DESCRIPTION =
 
 export const SITE_TAGLINE = "Architecture, design, and editorial intelligence.";
 
+export const SITE_HOME_TITLE =
+  "The Ninth Edition | Architecture, Interior Design & Luxury Lifestyle Magazine";
+
 export const SITE_KEYWORDS = [
   "The 9th Edition",
   "the9thedition",

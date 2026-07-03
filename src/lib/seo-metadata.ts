@@ -34,12 +34,14 @@ export function buildPageMetadata(opts: {
   path?: string;
   noIndex?: boolean;
   keywords?: string[];
+  /** Use title verbatim (homepage / custom SEO titles). */
+  titleAbsolute?: boolean;
 }): Metadata {
   const base = getSiteUrl();
   const description = opts.description ?? SITE_DESCRIPTION;
   const path = opts.path ? (opts.path.startsWith("/") ? opts.path : `/${opts.path}`) : "";
   const url = `${base}${path}`;
-  const title = withBrand(opts.title);
+  const title = opts.titleAbsolute ? opts.title.trim() : withBrand(opts.title);
   const keywords = opts.keywords ?? SITE_KEYWORDS;
   return {
     title,

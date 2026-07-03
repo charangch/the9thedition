@@ -2,7 +2,7 @@ import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import Image from "next/image";
 import { buildPageMetadata } from "@/lib/seo-metadata";
-import { SITE_DESCRIPTION } from "@/lib/site-metadata";
+import { SITE_DESCRIPTION, SITE_HOME_TITLE } from "@/lib/site-metadata";
 import { HomepageJsonLd } from "@/components/homepage-json-ld";
 import { SiteSectionsIndex } from "@/components/site-sections-index";
 import { LikeShareBar } from "@/components/like-share-bar";
@@ -31,7 +31,8 @@ import { LatestProjectsSection } from "@/components/home/latest-projects-section
 import { getFeaturedPublishedProjects, getTrendingPublishedProjects } from "@/lib/published-projects";
 
 export const metadata = buildPageMetadata({
-  title: "the9thedition — Architecture, Design & Editorial Intelligence",
+  title: SITE_HOME_TITLE,
+  titleAbsolute: true,
   description: SITE_DESCRIPTION,
   path: "/",
 });
