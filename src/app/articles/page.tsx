@@ -10,7 +10,7 @@ import {
   listEditorialArticlesPage,
 } from "@/lib/editorial-articles";
 import { editorialHeroPath } from "@/lib/editorial-collection-images";
-import { getSiteUrl } from "@/lib/site-url";
+import { listingPageCanonical, listingPageRobots, listingPrimaryCanonical } from "@/lib/listing-page-seo";
 
 const PAGE_TITLE = "Articles";
 const PAGE_DESC =
@@ -25,16 +25,12 @@ export async function generateMetadata({
   const page = Math.max(1, parseInt(p.page ?? "1", 10) || 1);
   const cat = p.category?.trim() || null;
   const q = p.q?.trim() || null;
-  const site = getSiteUrl();
+  const listingParams = { page, category: cat, q };
+  const primaryCanonical = listingPrimaryCanonical("/articles");
   const title =
     page > 1 || cat || q
       ? `${PAGE_TITLE}${cat ? ` · ${cat}` : ""}${q ? ` · “${q}”` : ""}${page > 1 ? ` · Page ${page}` : ""} | the9thedition`
       : `${PAGE_TITLE} | the9thedition`;
-  const canonicalQs = new URLSearchParams();
-  if (cat) canonicalQs.set("category", cat);
-  if (q) canonicalQs.set("q", q);
-  if (page > 1) canonicalQs.set("page", String(page));
-  const canonical = `${site}/articles${canonicalQs.toString() ? `?${canonicalQs}` : ""}`;
   return {
     title,
     description: PAGE_DESC,
@@ -47,11 +43,11 @@ export async function generateMetadata({
       "design editorial",
       "the9thedition",
     ],
-    alternates: { canonical },
+    alternates: { canonical: primaryCanonical },
     openGraph: {
       type: "website",
       locale: "en_US",
-      url: canonical,
+      url: listingPageCanonical("/articles", listingParams),
       siteName: "The 9th Edition",
       title: `${PAGE_TITLE} | the9thedition`,
       description: PAGE_DESC,
@@ -61,7 +57,7 @@ export async function generateMetadata({
       title: `${PAGE_TITLE} | the9thedition`,
       description: PAGE_DESC,
     },
-    robots: { index: true, follow: true },
+    robots: listingPageRobots(listingParams),
   };
 }
 

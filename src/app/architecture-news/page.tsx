@@ -10,7 +10,7 @@ import {
   listArchitectureNewsPage,
 } from "@/lib/architecture-news";
 import { generatedImagePath } from "@/lib/generated-media";
-import { getSiteUrl } from "@/lib/site-url";
+import { listingPageCanonical, listingPageRobots, listingPrimaryCanonical } from "@/lib/listing-page-seo";
 
 const PAGE_TITLE = "Architecture News";
 const PAGE_DESC =
@@ -24,7 +24,8 @@ export async function generateMetadata({
   const p = await searchParams;
   const page = Math.max(1, parseInt(p.page ?? "1", 10) || 1);
   const cat = p.category ?? null;
-  const site = getSiteUrl();
+  const listingParams = { page, category: cat };
+  const primaryCanonical = listingPrimaryCanonical("/architecture-news");
   const title =
     page > 1 || cat
       ? `${PAGE_TITLE}${cat ? ` · ${cat}` : ""}${page > 1 ? ` · Page ${page}` : ""} | the9thedition`
@@ -41,11 +42,11 @@ export async function generateMetadata({
       "BIM",
       "sustainable architecture",
     ],
-    alternates: { canonical: `${site}/architecture-news` },
+    alternates: { canonical: primaryCanonical },
     openGraph: {
       type: "website",
       locale: "en_US",
-      url: `${site}/architecture-news`,
+      url: listingPageCanonical("/architecture-news", listingParams),
       siteName: "The 9th Edition",
       title: `${PAGE_TITLE} | the9thedition`,
       description: PAGE_DESC,
@@ -55,7 +56,7 @@ export async function generateMetadata({
       title: `${PAGE_TITLE} | the9thedition`,
       description: PAGE_DESC,
     },
-    robots: { index: true, follow: true },
+    robots: listingPageRobots(listingParams),
   };
 }
 

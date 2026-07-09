@@ -13,7 +13,7 @@ import {
 import { publishedToArchiveProject } from "@/lib/admin/published-to-archive";
 import { getArchivedPublishedForArchive } from "@/lib/published-projects";
 import { editorialHeroPath } from "@/lib/editorial-collection-images";
-import { getSiteUrl } from "@/lib/site-url";
+import { listingPageCanonical, listingPageRobots, listingPrimaryCanonical } from "@/lib/listing-page-seo";
 
 const PAGE_TITLE = "Project Archive";
 const PAGE_DESC =
@@ -28,7 +28,8 @@ export async function generateMetadata({
   const page = Math.max(1, parseInt(p.page ?? "1", 10) || 1);
   const cat = p.category ?? null;
   const q = p.q ?? null;
-  const site = getSiteUrl();
+  const listingParams = { page, category: cat, q };
+  const primaryCanonical = listingPrimaryCanonical("/archive");
   const title =
     page > 1 || cat || q
       ? `${PAGE_TITLE}${cat ? ` · ${cat}` : ""}${q ? ` · “${q}”` : ""}${page > 1 ? ` · Page ${page}` : ""} | the9thedition`
@@ -45,17 +46,17 @@ export async function generateMetadata({
       "construction",
       "the9thedition",
     ],
-    alternates: { canonical: `${site}/archive` },
+    alternates: { canonical: primaryCanonical },
     openGraph: {
       type: "website",
       locale: "en_US",
-      url: `${site}/archive`,
+      url: listingPageCanonical("/archive", listingParams),
       siteName: "The 9th Edition",
       title: `${PAGE_TITLE} | the9thedition`,
       description: PAGE_DESC,
     },
     twitter: { card: "summary_large_image", title: `${PAGE_TITLE} | the9thedition`, description: PAGE_DESC },
-    robots: { index: true, follow: true },
+    robots: listingPageRobots(listingParams),
   };
 }
 

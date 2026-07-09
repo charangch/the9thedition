@@ -22,6 +22,12 @@ const insforgePattern = insforgeImagePattern();
 const nextConfig = {
   async redirects() {
     return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.theninthedition.com" }],
+        destination: "https://theninthedition.com/:path*",
+        permanent: true,
+      },
       { source: "/news", destination: "/architecture-news", permanent: true },
       { source: "/news/:slug", destination: "/architecture-news/:slug", permanent: true },
       {
@@ -51,6 +57,9 @@ const nextConfig = {
     localPatterns: [
       {
         pathname: "/api/generated-image",
+      },
+      {
+        pathname: "/api/editorial-image",
       },
       {
         pathname: "/the9th-edition-logo.png",

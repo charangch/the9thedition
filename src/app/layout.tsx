@@ -54,7 +54,6 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true },
   },
-  alternates: { canonical: siteUrl },
   verification: {
     google: "google1c6f87315d8d961e",
   },

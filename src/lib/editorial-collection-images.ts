@@ -1,11 +1,16 @@
-/** Six local JPEGs per archive / articles entry — one luxury building per slug. */
+/** Six luxury architecture photos per archive / articles entry — one building per slug. */
 export const EDITORIAL_IMAGE_COUNT = 6;
 
 export type EditorialImageCollection = "archive" | "articles";
 
 export function editorialImagePath(collection: EditorialImageCollection, slug: string, index: number): string {
   const i = Math.max(0, Math.min(EDITORIAL_IMAGE_COUNT - 1, index));
-  return `/images/${collection}/${slug}/${i}.jpg`;
+  const params = new URLSearchParams({
+    collection,
+    slug,
+    index: String(i),
+  });
+  return `/api/editorial-image?${params.toString()}`;
 }
 
 export function editorialGalleryPaths(collection: EditorialImageCollection, slug: string): string[] {
@@ -17,7 +22,7 @@ export function editorialHeroPath(collection: EditorialImageCollection, slug: st
 }
 
 export function isEditorialImagePath(src: string): boolean {
-  return /^\/images\/(archive|articles)\/[^/]+\/\d+\.jpg$/.test(src);
+  return src.startsWith("/api/editorial-image?");
 }
 
 export function absoluteEditorialImageUrl(
