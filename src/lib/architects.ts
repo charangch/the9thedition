@@ -1,3 +1,5 @@
+import { catalogProjectHeroPath } from "@/lib/catalog-project-images";
+
 export type ArchitectProfile = {
   slug: string;
   name: string;
@@ -7,79 +9,142 @@ export type ArchitectProfile = {
   image?: string;
 };
 
-/** Curated architect / studio profiles (linked from projects). */
+function slugifyFirm(firm: string): string {
+  return firm
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** Ninth Edition studios from TheNinthEdition folders 1–20 (unique ARCHITECTS values). */
 export const architects: ArchitectProfile[] = [
   {
-    slug: "iki-builds",
-    name: "Iki Builds",
-    firm: "Iki Builds",
-    bio: "Hyderabad-based practice focused on climate-responsive residential architecture and net-zero experimentation.",
-    image:
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop",
+    slug: "estudi-norda",
+    name: "Marta Alenyà",
+    firm: "Estudi Norda",
+    bio: "Menorca-based practice shaping coastal residences that negotiate wind, limestone, and Mediterranean light.",
+    image: catalogProjectHeroPath("vela-house"),
   },
   {
-    slug: "temple-town",
-    name: "Temple Town",
-    firm: "Temple Town",
-    bio: "Kerala studio weaving antiques, courtyards, and craft-led interiors into contemporary homes.",
-    image:
-      "https://images.unsplash.com/photo-1600566752355-35792bedcfea?q=80&w=800&auto=format&fit=crop",
+    slug: "mizuha-atelier",
+    name: "Ren Takamori",
+    firm: "Mizuha Atelier",
+    bio: "Kanazawa studio designing courtyard homes organised around rain, shadow, and garden sequences.",
+    image: catalogProjectHeroPath("kurokawa-courtyard-house"),
   },
   {
-    slug: "studio-momo",
-    name: "Studio MoMo",
-    firm: "Studio MoMo",
-    bio: "Large-format residential and hospitality work with a signature language of courts, stone, and procession.",
-    image:
-      "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=800&auto=format&fit=crop",
+    slug: "feld-havn-studio",
+    name: "Søren Vestergaard",
+    firm: "Feld & Havn Studio",
+    bio: "Copenhagen practice known for adaptive reuse — warehouses reimagined as rooms within rooms.",
+    image: catalogProjectHeroPath("the-copper-passage"),
   },
   {
-    slug: "naked-volume",
-    name: "Naked Volume",
-    firm: "Naked Volume",
-    bio: "Thrissur-based team known for homes that grow around landscape and memory.",
-    image:
-      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=800&auto=format&fit=crop",
+    slug: "taller-umbral",
+    name: "Taller Umbral",
+    firm: "Taller Umbral",
+    bio: "Mexican atelier designing forest and tropical residences around night sky, stone, water, and filtered light.",
+    image: catalogProjectHeroPath("sierra-observatory-house"),
   },
   {
-    slug: "nacl-studio",
-    name: "NACL Studio",
-    firm: "NACL Studio",
-    bio: "Weekend and hillside retreats balancing rustic materiality with refined comfort.",
-    image:
-      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=800&auto=format&fit=crop",
+    slug: "nordur-atelier",
+    name: "Norður Atelier",
+    firm: "Norður Atelier",
+    bio: "Icelandic studio shaping geothermal retreats and coastal houses for darkness, steam, and northern horizons.",
+    image: catalogProjectHeroPath("hotel-nott"),
   },
   {
-    slug: "the-last-goldfish",
-    name: "The Last Goldfish",
-    firm: "The Last Goldfish",
-    bio: "Mumbai interiors studio shaping fluid, compact urban homes with sculptural surfaces.",
-    image:
-      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=800&auto=format&fit=crop",
+    slug: "atelier-linha-norte",
+    name: "Inês Carvalho",
+    firm: "Atelier Linha Norte",
+    bio: "Porto practice reimagining historic townhouses through vertical sequences of light.",
+    image: catalogProjectHeroPath("rua-das-janelas"),
   },
   {
-    slug: "lyth-design",
-    name: "Lyth Design",
-    firm: "Lyth Design",
-    bio: "Pan-India interiors practice recognised for tonal palettes and bespoke joinery.",
-    image:
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=800&auto=format&fit=crop",
+    slug: "morrow-field-studio",
+    name: "Clara Winton",
+    firm: "Morrow Field Studio",
+    bio: "Australian desert practice building residences around shade, distance, and horizon.",
+    image: catalogProjectHeroPath("red-earth-house"),
   },
   {
-    slug: "soul-space",
-    name: "Soul Space Design Studio",
-    firm: "Soul Space Design Studio",
-    bio: "Bengaluru studio exploring bold colour, brutalist massing, and playful residential narratives.",
-    image:
-      "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?q=80&w=800&auto=format&fit=crop",
+    slug: "studio-thalassa",
+    name: "Eleni Markou",
+    firm: "Studio Thalassa",
+    bio: "Cycladic studio carving cliffside wellness retreats between stone and the Aegean Sea.",
+    image: catalogProjectHeroPath("the-white-descent"),
   },
   {
-    slug: "the9thedition-editorial",
-    name: "the9thedition Editorial",
-    firm: "the9thedition",
-    bio: "In-house curatorial and special projects desk for culture, travel, and directory features.",
-    image:
-      "https://images.unsplash.com/photo-1464146072230-91cabc968266?q=80&w=800&auto=format&fit=crop",
+    slug: "kuro-mori-atelier",
+    name: "Ren Takahashi",
+    firm: "Kuro Mori Atelier",
+    bio: "Hokkaido atelier designing mountain residences for silence, warmth, and winter landscape.",
+    image: catalogProjectHeroPath("house-of-falling-snow"),
+  },
+  {
+    slug: "estudio-umbral-verde",
+    name: "Mateo Álvarez",
+    firm: "Estudio Umbral Verde",
+    bio: "Costa Rican studio building tropical houses around rain, concrete, and forest canopy.",
+    image: catalogProjectHeroPath("canopy-void-house"),
+  },
+  {
+    slug: "atelier-varenne",
+    name: "Camille Moreau",
+    firm: "Atelier Varenne",
+    bio: "Parisian practice reimagining residences through stone, shadow, and contemporary craft.",
+    image: catalogProjectHeroPath("maison-de-l-ombre"),
+  },
+  {
+    slug: "terra-forma-collective",
+    name: "Amara Venter",
+    firm: "Terra Forma Collective",
+    bio: "Namibian collective framing desert residences against the silence and scale of the Namib.",
+    image: catalogProjectHeroPath("house-of-distant-dunes"),
+  },
+  {
+    slug: "estudio-tierra-sur",
+    name: "Sofía Valdés",
+    firm: "Estudio Tierra Sur",
+    bio: "Chilean vineyard architecture shaped by stone, copper, and views toward the Andes.",
+    image: catalogProjectHeroPath("valle-de-cobre"),
+  },
+  {
+    slug: "atelier-kinu",
+    name: "Aiko Nakamura",
+    firm: "Atelier Kinu",
+    bio: "Kyoto atelier shaping contemporary residences through timber, courtyards, and the passage of light.",
+    image: catalogProjectHeroPath("house-between-gardens"),
+  },
+  {
+    slug: "studio-pale-ground",
+    name: "Isla Bennett",
+    firm: "Studio Pale Ground",
+    bio: "Western Australian practice carving coastal residences between limestone, light, and the Indian Ocean.",
+    image: catalogProjectHeroPath("the-hollow-coast"),
+  },
+  {
+    slug: "nordhavn-studio",
+    name: "Ingrid Solberg",
+    firm: "Nordhavn Studio",
+    bio: "Norwegian studio designing remote residences suspended between mountain, water, and sky.",
+    image: catalogProjectHeroPath("above-the-silent-fjord"),
+  },
+  {
+    slug: "atelier-tazrout",
+    name: "Amira El Mansouri",
+    firm: "Atelier Tazrout",
+    bio: "Marrakech practice shaping desert residences in rammed earth, water, and Atlas horizons.",
+    image: catalogProjectHeroPath("house-of-red-earth"),
+  },
+  {
+    slug: "estudio-linha-tropical",
+    name: "Marina Vasconcelos",
+    firm: "Estúdio Linha Tropical",
+    bio: "Brazilian studio designing houses suspended above the Atlantic canopy.",
+    image: catalogProjectHeroPath("house-above-the-canopy"),
   },
 ];
 
@@ -98,4 +163,12 @@ export function getArchitectSlugByFirmName(firmName: string): string | null {
   const normalized = firmName.trim().toLowerCase();
   if (!normalized) return null;
   return byFirm.get(normalized) ?? null;
+}
+
+/** Resolve catalog architect slug from a DOCX ARCHITECTS / firm string. */
+export function resolveArchitectSlugFromFirm(firmName: string): string {
+  const fromMap = getArchitectSlugByFirmName(firmName);
+  if (fromMap) return fromMap;
+  const slug = slugifyFirm(firmName);
+  return slug || "estudi-norda";
 }

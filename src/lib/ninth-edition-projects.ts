@@ -1,4 +1,5 @@
 import data from "@/data/ninth-edition-projects.json";
+import { resolveArchitectSlugFromFirm } from "@/lib/architects";
 import type { ProjectEntry } from "@/lib/project-catalog-types";
 import { catalogProjectHeroPath } from "@/lib/catalog-project-images";
 
@@ -50,7 +51,7 @@ export function toProjectEntry(record: NinthEditionProjectRecord): ProjectEntry 
     category: record.category,
     location: record.location,
     byline: record.byline,
-    architectSlug: "the9thedition-editorial",
+    architectSlug: resolveArchitectSlugFromFirm(record.architects),
     projectType: record.projectType,
   };
 }

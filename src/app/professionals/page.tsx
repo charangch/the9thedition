@@ -2,34 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { architects } from "@/lib/architects";
-import { getProfessionals } from "@/lib/professionals-db";
-import { countPublishedProjectsByProfessionalId } from "@/lib/published-projects";
 import { getProjectsByArchitectSlug } from "@/lib/project-catalog";
 import { buildPageMetadata } from "@/lib/seo-metadata";
 
 export const metadata = buildPageMetadata({
   title: "Professionals & architecture studios",
   description:
-    "Directory of architecture practices, designers, and editorial profiles linked to published projects on The 9th Edition.",
+    "Directory of architecture practices linked to The Ninth Edition project library on The 9th Edition.",
   path: "/professionals",
 });
 
-export default async function ProfessionalsPage() {
-  const dbProfessionals = await getProfessionals(180);
-  const merged = [
-    ...dbProfessionals.map((p) => ({
-      slug: p.slug,
-      firm: p.firm,
-      name: p.name,
-      image: p.image_url ?? undefined,
-      fromDb: true,
-      id: p.id,
-    })),
-    ...architects
-      .filter((a) => !dbProfessionals.some((p) => p.slug === a.slug))
-      .map((a) => ({ slug: a.slug, firm: a.firm, name: a.name, image: a.image, fromDb: false, id: "" })),
-  ];
-
+export default function ProfessionalsPage() {
   return (
     <>
       <SiteHeader />
@@ -37,16 +20,14 @@ export default async function ProfessionalsPage() {
         <div className="max-w-3xl">
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl">Professionals</h1>
           <p className="mt-4 text-muted">
-            Architects and studios behind projects on the9thedition. Open a profile to see all of
+            Architects and studios behind The Ninth Edition projects. Open a profile to see all of
             their published work in one place.
           </p>
         </div>
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {await Promise.all(merged.map(async (a) => {
-            const count = a.fromDb
-              ? await countPublishedProjectsByProfessionalId(a.id)
-              : getProjectsByArchitectSlug(a.slug).length;
+          {architects.map((a) => {
+            const count = getProjectsByArchitectSlug(a.slug).length;
             return (
               <Link
                 key={a.slug}
@@ -73,7 +54,7 @@ export default async function ProfessionalsPage() {
                 </div>
               </Link>
             );
-          }))}
+          })}
         </div>
       </main>
     </>
