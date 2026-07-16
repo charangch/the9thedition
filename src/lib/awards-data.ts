@@ -8,21 +8,21 @@ export type AwardWinnerRow = {
 };
 
 export const awardWinners: AwardWinnerRow[] = [
-  { slug: "hyderabad-climate-smart-residence", awardCategory: "Housing" },
-  { slug: "kochi-courtyard-craft-memory", awardCategory: "Houses" },
-  { slug: "interiors-texture-light-silence", awardCategory: "Interior architecture" },
-  { slug: "alibag-nine-courtyards", awardCategory: "Residential architecture" },
-  { slug: "bengaluru-mexican-palette-brutalism", awardCategory: "Commercial & offices" },
-  { slug: "temple-architecture-modern-gallery", awardCategory: "Cultural architecture" },
-  { slug: "birdhouses-kutch-community-towers", awardCategory: "Public & landscape" },
-  { slug: "pawna-weekend-rustic-stone", awardCategory: "Hospitality architecture" },
-  { slug: "jaipur-haveli-modern-life", awardCategory: "Heritage & adaptive reuse" },
-  { slug: "thrissur-forest-bungalow-mango", awardCategory: "Houses" },
-  { slug: "kottayam-sun-shade-vernacular", awardCategory: "Climate-resilient housing" },
-  { slug: "chennai-coastal-villa-verandahs", awardCategory: "Coastal residential" },
-  { slug: "khar-west-fluid-interiors", awardCategory: "Interior architecture" },
-  { slug: "rajapalayam-farmhouse-generations", awardCategory: "Rural architecture" },
-  { slug: "celebrity-homes-art-decisions", awardCategory: "Editorial spotlight" },
+  { slug: "vela-house", awardCategory: "Housing" },
+  { slug: "kurokawa-courtyard-house", awardCategory: "Houses" },
+  { slug: "the-copper-passage", awardCategory: "Adaptive reuse" },
+  { slug: "sierra-observatory-house", awardCategory: "Residential architecture" },
+  { slug: "hotel-nott", awardCategory: "Hospitality architecture" },
+  { slug: "maison-de-l-ombre", awardCategory: "Interior architecture" },
+  { slug: "house-of-distant-dunes", awardCategory: "Desert architecture" },
+  { slug: "valle-de-cobre", awardCategory: "Landscape architecture" },
+  { slug: "house-between-gardens", awardCategory: "Courtyard housing" },
+  { slug: "the-hollow-coast", awardCategory: "Coastal residential" },
+  { slug: "casa-sombra", awardCategory: "Climate-resilient housing" },
+  { slug: "above-the-silent-fjord", awardCategory: "Remote architecture" },
+  { slug: "house-of-red-earth", awardCategory: "Heritage materials" },
+  { slug: "canopy-void-house", awardCategory: "Tropical residential" },
+  { slug: "house-above-the-canopy", awardCategory: "Editorial spotlight" },
 ];
 
 export type StudentAwardSpotlight = {
