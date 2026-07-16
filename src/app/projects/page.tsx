@@ -1,50 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import { LikeShareBar } from "@/components/like-share-bar";
+import { ProjectCard } from "@/components/project-card";
 import { SiteHeader } from "@/components/site-header";
-import { getArchitectBySlug } from "@/lib/architects";
-import { resolveProjectHeroImage } from "@/lib/project-catalog";
-import { shouldUseUnoptimizedImage } from "@/lib/media/remote-image";
-import { getPublishedProjects } from "@/lib/published-projects";
 import { getAllProjects } from "@/lib/project-catalog";
+import { shouldUseUnoptimizedImage } from "@/lib/media/remote-image";
 import { buildPageMetadata } from "@/lib/seo-metadata";
 
 export const metadata = buildPageMetadata({
   title: "Architecture & design projects",
   description:
-    "Explore curated residential, cultural, and interior architecture projects across India and the region—editorial documentation and studio portfolios.",
+    "Explore twenty luxury architecture and interior design projects from The Ninth Edition — residential, hospitality, and cultural works with photography and editorial documentation.",
   path: "/projects",
 });
 
-export default async function ProjectsPage() {
-  const [published, staticProjects] = await Promise.all([getPublishedProjects(120), Promise.resolve(getAllProjects())]);
-  const staticRows = staticProjects
-    .filter((project) => !published.some((p) => p.slug === project.slug))
-    .map((project) => {
-      const architect = getArchitectBySlug(project.architectSlug);
-      return {
-        slug: project.slug,
-        title: project.title,
-        category: project.category,
-        location: project.location,
-        image: resolveProjectHeroImage(project.slug),
-        meta: architect?.firm ?? null,
-      };
-    });
-  const rows = [
-    ...published.map((project) => ({
-      slug: project.slug,
-      title: project.title,
-      category: project.category,
-      location: project.location,
-      image: resolveProjectHeroImage(project.slug, {
-        dbHero: project.hero_image_url,
-        dbGallery: project.image_urls,
-      }),
-      meta: project.byline ?? null,
-    })),
-    ...staticRows,
-  ];
+export default function ProjectsPage() {
+  const rows = getAllProjects();
 
   return (
     <>
@@ -53,8 +24,8 @@ export default async function ProjectsPage() {
         <div className="max-w-3xl">
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl">Projects</h1>
           <p className="mt-4 text-muted">
-            Every project featured on the homepage lives here too — the same editorial catalog, with
-            architect credits and full detail pages.
+            The Ninth Edition project library — architecture and interior design with photography,
+            build details, and full editorial pages.
           </p>
         </div>
 
@@ -78,14 +49,14 @@ export default async function ProjectsPage() {
                 <div className="p-4">
                   <p className="text-[10px] uppercase tracking-[0.16em] text-primary">
                     {project.category}
-                    {project.location ? ` • ${project.location}` : ""}
+                    {project.location ? ` • ${project.location.split(",")[0]}` : ""}
                   </p>
                   <h2 className="mt-1 break-words font-serif text-xl leading-snug group-hover:text-primary">
                     {project.title}
                   </h2>
-                  {project.meta ? (
+                  {project.byline ? (
                     <p className="mt-2 text-xs text-muted">
-                      <span className="text-charcoal/80">{project.meta}</span>
+                      <span className="text-charcoal/80">{project.byline}</span>
                     </p>
                   ) : null}
                 </div>

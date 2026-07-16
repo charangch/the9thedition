@@ -1,9 +1,9 @@
 import type { ArchitectProfile } from "@/lib/architects";
 import { EDITORIAL_FILLER_PATTERN, sanitizeExcerpt, sanitizeFaq } from "@/lib/editorial-sanitize";
-import { generatedGalleryPaths } from "@/lib/generated-media";
 import { catalogProjectGalleryPaths } from "@/lib/catalog-project-images";
+import { getNinthEditionProjectBySlug } from "@/lib/ninth-edition-projects";
 import { getProjectLongForm } from "@/lib/project-long-form";
-import type { ProjectEntry } from "@/lib/project-catalog";
+import type { ProjectEntry } from "@/lib/project-catalog-types";
 
 export type BuildSpec = { label: string; value: string };
 
@@ -182,6 +182,21 @@ export function getProjectArticle(
 ): ProjectArticle {
   const fromMap = getProjectDetailMediaForSlug(project.slug);
   const mediaMerged: ProjectDetailMedia = mediaFromAdmin != null ? { ...fromMap, ...mediaFromAdmin } : fromMap;
+
+  const imported = getNinthEditionProjectBySlug(project.slug);
+  if (imported) {
+    const gallery = catalogProjectGalleryPaths(project.slug);
+    return stripInternalCatalogCopy({
+      dek: sanitizeExcerpt(imported.dek),
+      paragraphs: imported.paragraphs.map(sanitizeParagraph).filter(Boolean),
+      specs: imported.specs,
+      gallery,
+      imageAlts: imported.imageAlts.slice(0, gallery.length),
+      faq: [],
+      seo: imported.seo,
+      media: mediaMerged,
+    });
+  }
 
   const lf = getProjectLongForm(project.slug);
   let dek: string;

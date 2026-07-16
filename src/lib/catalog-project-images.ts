@@ -1,5 +1,5 @@
-/** Seven local JPEGs per catalog project (homepage + /projects listing). */
-export const CATALOG_PROJECT_IMAGE_COUNT = 7;
+/** Five local JPEGs per catalog project (hero + gallery). */
+export const CATALOG_PROJECT_IMAGE_COUNT = 5;
 
 export function catalogProjectImagePath(slug: string, index: number): string {
   const i = Math.max(0, Math.min(CATALOG_PROJECT_IMAGE_COUNT - 1, index));

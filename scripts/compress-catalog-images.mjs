@@ -21,7 +21,7 @@ async function main() {
     const dir = path.join(ROOT, slug);
     const stat = await fs.stat(dir).catch(() => null);
     if (!stat?.isDirectory()) continue;
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 5; i++) {
       const file = path.join(dir, `${i}.jpg`);
       try {
         await fs.access(file);

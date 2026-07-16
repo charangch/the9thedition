@@ -1,53 +1,17 @@
-import type { EditorialStory } from "@/lib/content";
 import { catalogProjectHeroPath } from "@/lib/catalog-project-images";
 import { generatedImagePath } from "@/lib/generated-media";
 import {
-  featuredStories,
-  projectSpotlights,
-  secondaryLeadStories,
-  sectionStories,
-} from "@/lib/content";
+  getAllProjectEntries,
+  getNinthEditionProjectBySlug,
+  getNinthEditionProjectSlugs,
+  getRelatedProjectEntries,
+} from "@/lib/ninth-edition-projects";
+import type { ProjectEntry } from "@/lib/project-catalog-types";
 
-export type ProjectEntry = EditorialStory & {
-  slug: string;
-  /** Matches `ArchitectProfile.slug` in `@/lib/architects`. */
-  architectSlug: string;
-  /** Used with `category` to surface related projects (e.g. Residential, Interior, Cultural). */
-  projectType: string;
-};
+export type { ProjectEntry } from "@/lib/project-catalog-types";
 
-function entry(slug: string, story: EditorialStory, architectSlug: string, projectType: string): ProjectEntry {
-  return {
-    ...story,
-    slug,
-    architectSlug,
-    projectType,
-    image: catalogProjectHeroPath(slug),
-  };
-}
-
-/** All projects with detail pages at `/projects/[slug]` — same set used on homepage and `/projects`. */
-export const projectCatalog: ProjectEntry[] = [
-  entry("hyderabad-climate-smart-residence", featuredStories[0]!, "iki-builds", "Residential"),
-  entry("kochi-courtyard-craft-memory", featuredStories[1]!, "temple-town", "Residential"),
-  entry("interiors-texture-light-silence", featuredStories[2]!, "lyth-design", "Interior"),
-  entry("alibag-nine-courtyards", featuredStories[3]!, "studio-momo", "Residential"),
-  entry("kottayam-sun-shade-vernacular", featuredStories[4]!, "temple-town", "Residential"),
-  entry("bengaluru-mexican-palette-brutalism", featuredStories[5]!, "soul-space", "Interior"),
-  entry("designer-directory-hospitality-interiors", featuredStories[6]!, "the9thedition-editorial", "Editorial"),
-  entry("thrissur-forest-bungalow-mango", projectSpotlights[0]!, "naked-volume", "Residential"),
-  entry("pawna-weekend-rustic-stone", projectSpotlights[1]!, "nacl-studio", "Residential"),
-  entry("jaipur-haveli-modern-life", projectSpotlights[2]!, "studio-momo", "Residential"),
-  entry("khar-west-fluid-interiors", projectSpotlights[3]!, "the-last-goldfish", "Interior"),
-  entry("chennai-coastal-villa-verandahs", projectSpotlights[4]!, "iki-builds", "Residential"),
-  entry("rajapalayam-farmhouse-generations", projectSpotlights[5]!, "naked-volume", "Residential"),
-  entry("birdhouses-kutch-community-towers", secondaryLeadStories[0]!, "the9thedition-editorial", "Cultural"),
-  entry("courtyards-tropical-luxury-homes", secondaryLeadStories[1]!, "iki-builds", "Editorial"),
-  entry("celebrity-homes-art-decisions", secondaryLeadStories[2]!, "the9thedition-editorial", "Editorial"),
-  entry("temple-architecture-modern-gallery", sectionStories.culture[0]! as EditorialStory, "the9thedition-editorial", "Cultural"),
-  entry("portrait-artist-studios", sectionStories.culture[1]! as EditorialStory, "the9thedition-editorial", "Cultural"),
-  entry("biennale-cities-design-destinations", sectionStories.culture[2]! as EditorialStory, "the9thedition-editorial", "Editorial"),
-];
+/** All projects at `/projects/[slug]` — The Ninth Edition editorial set (20). */
+export const projectCatalog: ProjectEntry[] = getAllProjectEntries();
 
 const bySlug = new Map(projectCatalog.map((p) => [p.slug, p]));
 
@@ -63,29 +27,16 @@ export function getProjectsByArchitectSlug(architectSlug: string): ProjectEntry[
   return projectCatalog.filter((p) => p.architectSlug === architectSlug);
 }
 
-/**
- * Related catalog projects: same category + type, then same category, then same architect,
- * then the rest of the catalog. Up to `max` items (aim for 9+ when the catalog is large enough).
- */
 export function getRelatedProjects(current: ProjectEntry, max = 24): ProjectEntry[] {
-  const all = projectCatalog.filter((p) => p.slug !== current.slug);
-  const ordered: ProjectEntry[] = [];
-  const push = (candidates: ProjectEntry[]) => {
-    for (const p of candidates) {
-      if (ordered.length >= max) return;
-      if (ordered.some((x) => x.slug === p.slug)) continue;
-      ordered.push(p);
-    }
-  };
-  push(all.filter((p) => p.category === current.category && p.projectType === current.projectType));
-  push(all.filter((p) => p.category === current.category));
-  push(all.filter((p) => p.architectSlug === current.architectSlug));
-  push(all);
-  return ordered;
+  return getRelatedProjectEntries(current, max);
 }
 
 export function getAllProjectSlugs(): string[] {
-  return projectCatalog.map((p) => p.slug);
+  return getNinthEditionProjectSlugs();
+}
+
+export function isCatalogProjectSlug(slug: string): boolean {
+  return Boolean(getNinthEditionProjectBySlug(slug));
 }
 
 type ProjectHeroSource = {
@@ -93,10 +44,6 @@ type ProjectHeroSource = {
   dbGallery?: readonly string[] | null;
 };
 
-/**
- * Single source of truth for project card thumbnails and detail-page heroes.
- * Matches `/projects/[slug]` routing: catalog slugs always use local Hollyhock `0.jpg`.
- */
 export function resolveProjectHeroImage(slug: string, source: ProjectHeroSource = {}): string {
   const catalog = getProjectBySlug(slug);
   if (catalog) return catalogProjectHeroPath(slug);
@@ -110,15 +57,12 @@ export function resolveProjectHeroImage(slug: string, source: ProjectHeroSource 
   return generatedImagePath("projects", slug, 0);
 }
 
-/** @deprecated Prefer `resolveProjectHeroImage` — kept for existing call sites. */
 export function resolveProjectListImage(slug: string, dbHero?: string | null): string {
   return resolveProjectHeroImage(slug, { dbHero });
 }
 
-/** Slugs aligned with `featuredStories` order (7). */
+/** First seven slugs for legacy homepage rails (may reference removed projects). */
 export const featuredStorySlugs = projectCatalog.slice(0, 7).map((p) => p.slug);
-
-/** Slugs aligned with `projectSpotlights` order (6). */
 export const projectSpotlightSlugs = projectCatalog.slice(7, 13).map((p) => p.slug);
 
 export function getSectionStoriesResolved(): {
@@ -127,21 +71,16 @@ export function getSectionStoriesResolved(): {
   culture: ProjectEntry[];
 } {
   return {
-    homes: featuredStorySlugs.slice(0, 4).map((s) => bySlug.get(s)!),
-    projects: projectSpotlightSlugs.slice(0, 4).map((s) => bySlug.get(s)!),
-    culture: [
-      "temple-architecture-modern-gallery",
-      "portrait-artist-studios",
-      "biennale-cities-design-destinations",
-    ].map((s) => bySlug.get(s)!),
+    homes: projectCatalog.slice(0, 4),
+    projects: projectCatalog.slice(4, 8),
+    culture: projectCatalog.slice(8, 11),
   };
 }
 
-/** One featured project per top-level category (for homepage “Projects by Category”). */
 export const projectsByCategory: { category: string; slug: string }[] = [
-  { category: "Architecture & Design", slug: "hyderabad-climate-smart-residence" },
-  { category: "Decorating", slug: "interiors-texture-light-silence" },
-  { category: "Lifestyle", slug: "pawna-weekend-rustic-stone" },
-  { category: "Celebrity", slug: "celebrity-homes-art-decisions" },
-  { category: "Culture", slug: "temple-architecture-modern-gallery" },
-];
+  { category: "Architecture & Design", slug: projectCatalog[0]?.slug ?? "vela-house" },
+  { category: "Interior Design & Architecture", slug: projectCatalog[10]?.slug ?? "maison-de-l-ombre" },
+  { category: "Hospitality", slug: projectCatalog[4]?.slug ?? "hotel-nott" },
+  { category: "Residential", slug: projectCatalog[1]?.slug ?? "kurokawa-courtyard-house" },
+  { category: "Retreat", slug: projectCatalog[11]?.slug ?? "house-of-distant-dunes" },
+].filter((row) => row.slug);

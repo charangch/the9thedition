@@ -1,24 +1,10 @@
 import Link from "next/link";
-import { ProjectCard, type ProjectCardModel } from "@/components/project-card";
-import { resolveProjectHeroImage } from "@/lib/project-catalog";
-import { getLatestPublishedProjects } from "@/lib/published-projects";
+import { ProjectCard } from "@/components/project-card";
+import { getAllProjects } from "@/lib/project-catalog";
 
-/** FIFO homepage rail — newest admin-published projects first (additive section). */
-export async function LatestProjectsSection() {
-  const latest = await getLatestPublishedProjects(6);
-  if (!latest.length) return null;
-
-  const cards: ProjectCardModel[] = latest.map((p) => ({
-    slug: p.slug,
-    title: p.title,
-    category: p.category || "Architecture & Design",
-    location: p.location,
-    image: resolveProjectHeroImage(p.slug, {
-      dbHero: p.hero_image_url,
-      dbGallery: p.image_urls,
-    }),
-    meta: p.byline ?? null,
-  }));
+/** All 20 editorial catalog projects (newest folder order: 1 → 20). */
+export function LatestProjectsSection() {
+  const latest = getAllProjects();
 
   return (
     <section className="container-premium pt-8">
@@ -29,8 +15,18 @@ export async function LatestProjectsSection() {
         </Link>
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {cards.map((project) => (
-          <ProjectCard key={project.slug} project={project} />
+        {latest.map((project) => (
+          <ProjectCard
+            key={project.slug}
+            project={{
+              slug: project.slug,
+              title: project.title,
+              category: project.category,
+              location: project.location,
+              image: project.image,
+              meta: project.byline ?? null,
+            }}
+          />
         ))}
       </div>
     </section>
