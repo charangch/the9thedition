@@ -1,17 +1,19 @@
 import { ProjectCard } from "@/components/project-card";
 import { SiteHeader } from "@/components/site-header";
-import { getAllProjects } from "@/lib/project-catalog";
+import { getMergedProjectCards } from "@/lib/merged-project-cards";
 import { buildPageMetadata } from "@/lib/seo-metadata";
+
+export const revalidate = 60;
 
 export const metadata = buildPageMetadata({
   title: "Architecture & design projects",
   description:
-    "Explore twenty luxury architecture and interior design projects from The Ninth Edition — residential, hospitality, and cultural works with photography and editorial documentation.",
+    "Explore luxury architecture and interior design projects from The Ninth Edition — residential, hospitality, and cultural works with photography and editorial documentation.",
   path: "/projects",
 });
 
-export default function ProjectsPage() {
-  const rows = getAllProjects();
+export default async function ProjectsPage() {
+  const rows = await getMergedProjectCards(280);
 
   return (
     <>
@@ -27,17 +29,7 @@ export default function ProjectsPage() {
 
         <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {rows.map((project) => (
-            <ProjectCard
-              key={project.slug}
-              project={{
-                slug: project.slug,
-                title: project.title,
-                category: project.category,
-                location: project.location?.split(",")[0]?.trim() ?? project.location,
-                image: project.image,
-                meta: project.byline ?? null,
-              }}
-            />
+            <ProjectCard key={project.slug} project={project} />
           ))}
         </div>
       </main>

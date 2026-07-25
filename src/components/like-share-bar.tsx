@@ -324,7 +324,7 @@ export function LikeShareBar({ storageId, sharePath, title, className, compact }
     >
       <button
         type="button"
-        disabled={likeBusy || count == null}
+        disabled={likeBusy}
         aria-pressed={liked}
         onClick={(e) => {
           e.preventDefault();

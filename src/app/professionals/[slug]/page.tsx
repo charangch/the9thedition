@@ -1,18 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LikeShareBar } from "@/components/like-share-bar";
+import { ProjectCard, publishedToProjectCard } from "@/components/project-card";
 import { SiteHeader } from "@/components/site-header";
 import { getAllArchitectSlugs, getArchitectBySlug } from "@/lib/architects";
-import { getProfessionalBySlug } from "@/lib/professionals-db";
-import { getPublishedProjectsByArchitectureFirm, getPublishedProjectsByProfessionalId } from "@/lib/published-projects";
+import { getProfessionalBySlug, getProfessionals } from "@/lib/professionals-db";
+import {
+  getPublishedProjectsByArchitectureFirm,
+  getPublishedProjectsByProfessionalId,
+} from "@/lib/published-projects";
 import { getProjectsByArchitectSlug, resolveProjectHeroImage } from "@/lib/project-catalog";
-import { shouldUseUnoptimizedImage } from "@/lib/media/remote-image";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return getAllArchitectSlugs().map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  const db = await getProfessionals(200);
+  const slugs = new Set([...getAllArchitectSlugs(), ...db.map((p) => p.slug)]);
+  return [...slugs].map((slug) => ({ slug }));
 }
 
 export default async function ProfessionalDetailPage({ params }: Props) {
@@ -31,10 +35,13 @@ export default async function ProfessionalDetailPage({ params }: Props) {
     notFound();
   }
 
-  const projects = getProjectsByArchitectSlug(slug);
+  const catalogProjects = getProjectsByArchitectSlug(slug);
   const publishedProjects = dbProfessional
-    ? await getPublishedProjectsByProfessionalId(dbProfessional.id, 24)
-    : await getPublishedProjectsByArchitectureFirm(architect.firm, 12);
+    ? await getPublishedProjectsByProfessionalId(dbProfessional.id, 48)
+    : await getPublishedProjectsByArchitectureFirm(architect.firm, 48);
+
+  const catalogSlugs = new Set(catalogProjects.map((p) => p.slug));
+  const publishedExtra = publishedProjects.filter((p) => !catalogSlugs.has(p.slug));
 
   return (
     <>
@@ -72,85 +79,31 @@ export default async function ProfessionalDetailPage({ params }: Props) {
         <section className="mt-14">
           <h2 className="font-serif text-3xl">Projects</h2>
           <p className="mt-2 text-sm text-muted">
-            Work on the9thedition that credits this studio (same projects as on the homepage and
-            directory).
+            Catalog and admin-published work credited to this studio.
           </p>
-          {projects.length === 0 ? (
+          {catalogProjects.length === 0 && publishedExtra.length === 0 ? (
             <p className="mt-6 text-sm text-muted">No projects linked yet.</p>
           ) : (
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {projects.map((project) => (
-                <article
+              {catalogProjects.map((project) => (
+                <ProjectCard
                   key={project.slug}
-                  className="flex flex-col overflow-hidden rounded-xl border border-primary/15 bg-surface transition hover:border-primary/35"
-                >
-                  <Link href={`/projects/${project.slug}`} className="group block flex-1">
-                    <div className="relative aspect-[16/10] bg-charcoal/5">
-                      <Image
-                        src={resolveProjectHeroImage(project.slug)}
-                        alt={project.title}
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 33vw"
-                        className="object-cover transition group-hover:scale-[1.02]"
-                        unoptimized={shouldUseUnoptimizedImage(resolveProjectHeroImage(project.slug))}
-                      />
-                    </div>
-                    <div className="p-4">
-                      <p className="text-[10px] uppercase tracking-[0.16em] text-primary">
-                        {project.category}
-                      </p>
-                      <h3 className="mt-1 font-serif text-xl leading-snug group-hover:text-primary">
-                        {project.title}
-                      </h3>
-                    </div>
-                  </Link>
-                  <div className="border-t border-primary/10 px-4 py-3">
-                    <LikeShareBar
-                      storageId={`project:${project.slug}`}
-                      sharePath={`/projects/${project.slug}`}
-                      title={project.title}
-                      compact
-                    />
-                  </div>
-                </article>
+                  project={{
+                    slug: project.slug,
+                    title: project.title,
+                    category: project.category,
+                    location: project.location,
+                    image: resolveProjectHeroImage(project.slug),
+                    meta: project.byline ?? null,
+                  }}
+                />
+              ))}
+              {publishedExtra.map((project) => (
+                <ProjectCard key={project.slug} project={publishedToProjectCard(project)} />
               ))}
             </div>
           )}
         </section>
-
-        {publishedProjects.length > 0 ? (
-          <section className="mt-14">
-            <h2 className="font-serif text-3xl">Published work</h2>
-            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {publishedProjects.map((project) => (
-                <article
-                  key={project.slug}
-                  className="flex flex-col rounded-xl border border-primary/15 bg-surface transition hover:border-primary/35"
-                >
-                  <Link href={`/projects/${project.slug}`} className="group block flex-1 p-4">
-                    <p className="text-[10px] uppercase tracking-[0.16em] text-primary">
-                      {project.category || "Project"}
-                    </p>
-                    <h3 className="mt-1 font-serif text-xl leading-snug group-hover:text-primary">
-                      {project.title}
-                    </h3>
-                    {project.excerpt ? (
-                      <p className="mt-2 text-sm text-charcoal/80">{project.excerpt}</p>
-                    ) : null}
-                  </Link>
-                  <div className="border-t border-primary/10 px-4 py-3">
-                    <LikeShareBar
-                      storageId={`project:${project.slug}`}
-                      sharePath={`/projects/${project.slug}`}
-                      title={project.title}
-                      compact
-                    />
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-        ) : null}
       </main>
     </>
   );

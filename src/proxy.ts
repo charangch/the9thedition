@@ -23,20 +23,33 @@ export function proxy(request: NextRequest) {
 
   if (path.startsWith("/api")) {
     const allowed = getAllowedOrigins();
+    const isPublicEngagement =
+      path === "/api/public/likes" || path.startsWith("/api/public/likes?");
+
     if (request.method === "OPTIONS") {
       const origin = request.headers.get("origin");
-      if (origin && !isOriginAllowed(origin, allowed)) {
+      if (origin && !isOriginAllowed(origin, allowed) && !isPublicEngagement) {
         return new NextResponse(null, { status: 403 });
       }
-      return new NextResponse(null, { status: 204, headers: corsHeaders(request, allowed) });
+      const headers = corsHeaders(request, allowed);
+      if (isPublicEngagement && origin) {
+        headers.set("Access-Control-Allow-Origin", origin);
+        headers.set("Vary", "Origin");
+      }
+      return new NextResponse(null, { status: 204, headers });
     }
+
     const origin = request.headers.get("origin");
-    if (origin && !isOriginAllowed(origin, allowed)) {
+    if (origin && !isOriginAllowed(origin, allowed) && !isPublicEngagement) {
       return NextResponse.json({ error: "Origin not allowed" }, { status: 403 });
     }
     const res = NextResponse.next();
-    if (origin && isOriginAllowed(origin, allowed)) {
+    if (origin && (isOriginAllowed(origin, allowed) || isPublicEngagement)) {
       const ch = corsHeaders(request, allowed);
+      if (isPublicEngagement && origin) {
+        ch.set("Access-Control-Allow-Origin", origin);
+        ch.set("Vary", "Origin");
+      }
       ch.forEach((value, key) => res.headers.set(key, value));
     }
     return res;
