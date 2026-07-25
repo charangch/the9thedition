@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -23,7 +24,7 @@ function HeartIcon({ filled, className }: { filled: boolean; className?: string 
   return (
     <svg
       viewBox="0 0 24 24"
-      className={cn("shrink-0", filled ? "text-[#e11d48]" : "text-charcoal/55", className)}
+      className={cn("shrink-0 transition-colors", filled ? "text-[#9a3b3b]" : "text-charcoal/50", className)}
       aria-hidden
     >
       {filled ? (
@@ -35,7 +36,7 @@ function HeartIcon({ filled, className }: { filled: boolean; className?: string 
         <path
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.75"
+          strokeWidth="1.5"
           strokeLinejoin="round"
           d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
         />
@@ -78,7 +79,13 @@ export function LikeShareBar({ storageId, sharePath, title, className, compact }
   const [likeBusy, setLikeBusy] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
-  const shareWrapRef = useRef<HTMLDivElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+  const shareBtnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const fullUrl =
     typeof window !== "undefined"
@@ -101,15 +108,46 @@ export function LikeShareBar({ storageId, sharePath, title, className, compact }
     };
   }, [storageId]);
 
+  useLayoutEffect(() => {
+    if (!shareOpen || !shareBtnRef.current) {
+      setMenuPos(null);
+      return;
+    }
+    const update = () => {
+      const rect = shareBtnRef.current!.getBoundingClientRect();
+      const menuWidth = 210;
+      const left = Math.min(
+        Math.max(8, rect.left),
+        window.innerWidth - menuWidth - 8,
+      );
+      setMenuPos({ top: rect.bottom + 8, left });
+    };
+    update();
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [shareOpen]);
+
   useEffect(() => {
     if (!shareOpen) return;
     const close = (e: MouseEvent) => {
-      if (shareWrapRef.current && !shareWrapRef.current.contains(e.target as Node)) {
-        setShareOpen(false);
-      }
+      const t = e.target as Node;
+      if (shareBtnRef.current?.contains(t)) return;
+      if (menuRef.current?.contains(t)) return;
+      setShareOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShareOpen(false);
     };
     document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [shareOpen]);
 
   const showHint = (msg: string) => {
@@ -191,7 +229,7 @@ export function LikeShareBar({ storageId, sharePath, title, className, compact }
   const shareLinks = [
     {
       id: "x",
-      label: "X",
+      label: "Share on X",
       onSelect: () =>
         openWindow(`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`),
     },
@@ -220,21 +258,69 @@ export function LikeShareBar({ storageId, sharePath, title, className, compact }
         setShareOpen(false);
       },
     },
-    {
-      id: "instagram",
-      label: "Instagram (copy caption)",
-      onSelect: () =>
-        void copyText(`${title}\n${fullUrl}`, "Caption copied — paste in Instagram"),
-    },
   ];
 
   const displayCount = count == null ? "—" : formatLikeCount(count);
+  const btnPad = compact ? "h-9 px-3" : "h-10 px-3.5";
+  const labelSize = compact ? "text-[11px]" : "text-xs";
+
+  const menu =
+    mounted && shareOpen && menuPos
+      ? createPortal(
+          <div
+            ref={menuRef}
+            id={menuId}
+            role="menu"
+            style={{ position: "fixed", top: menuPos.top, left: menuPos.left, zIndex: 9999 }}
+            className="w-[13.25rem] overflow-hidden rounded-lg border border-charcoal/10 bg-[#faf8f4] py-1 shadow-[0_12px_40px_-12px_rgba(40,32,24,0.35)]"
+          >
+            <button
+              type="button"
+              role="menuitem"
+              className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] tracking-wide text-charcoal/90 transition hover:bg-charcoal/[0.04]"
+              onClick={() => {
+                void openShareNative();
+              }}
+            >
+              Share…
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] tracking-wide text-charcoal/90 transition hover:bg-charcoal/[0.04]"
+              onClick={() => {
+                void copyText(fullUrl, "Link copied");
+                setShareOpen(false);
+              }}
+            >
+              Copy link
+            </button>
+            <div className="my-1 border-t border-charcoal/8" />
+            {shareLinks.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="menuitem"
+                className="flex w-full px-3.5 py-2 text-left text-[13px] tracking-wide text-charcoal/85 transition hover:bg-charcoal/[0.04]"
+                onClick={() => {
+                  item.onSelect();
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
     <div
-      className={cn("flex flex-wrap items-center gap-2", compact ? "" : "gap-3", className)}
+      className={cn("relative z-20 flex flex-wrap items-center gap-2", className)}
       role="group"
       aria-label="Like and share"
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
     >
       <button
         type="button"
@@ -247,85 +333,49 @@ export function LikeShareBar({ storageId, sharePath, title, className, compact }
         }}
         className={cn(
           "inline-flex items-center gap-2 rounded-full border transition disabled:opacity-50",
-          compact ? "px-2.5 py-1.5" : "px-3 py-2",
+          btnPad,
           liked
-            ? "border-[#fecaca] bg-[#fff1f2] hover:border-[#fca5a5]"
-            : "border-primary/20 bg-white/90 hover:border-primary/40",
+            ? "border-[#c4a4a4]/60 bg-[#f7efef] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+            : "border-charcoal/12 bg-[#faf8f4]/90 hover:border-charcoal/25 hover:bg-white",
         )}
       >
-        <HeartIcon filled={liked} className={compact ? "h-4 w-4" : "h-[18px] w-[18px]"} />
-        <span className={cn("font-semibold tabular-nums text-charcoal", compact ? "text-xs" : "text-sm")}>
+        <HeartIcon filled={liked} className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
+        <span
+          className={cn(
+            "font-medium tabular-nums tracking-[0.04em] text-charcoal/85",
+            labelSize,
+          )}
+        >
           {displayCount}
         </span>
         <span className="sr-only">{liked ? "Unlike" : "Like"}</span>
       </button>
 
-      <div ref={shareWrapRef} className="relative">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setShareOpen((o) => !o);
-          }}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-white/90 font-semibold text-charcoal transition hover:border-primary/40",
-            compact ? "px-2.5 py-1.5 text-xs" : "px-3 py-2 text-sm",
-          )}
-        >
-          <ShareGlyph className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
-          Share
-        </button>
-        {shareOpen ? (
-          <div
-            className="absolute left-1/2 top-[calc(100%+6px)] z-50 w-[min(12.5rem,calc(100vw-1rem))] -translate-x-1/2 rounded-xl border border-primary/15 bg-surface py-1.5 shadow-lg sm:left-0 sm:w-[12.5rem] sm:translate-x-0"
-            role="menu"
-          >
-            <button
-              type="button"
-              role="menuitem"
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-charcoal hover:bg-primary/5"
-              onClick={() => {
-                void openShareNative();
-              }}
-            >
-              <PhoneShareGlyph className="h-4 w-4 shrink-0 text-primary" />
-              More / system share…
-            </button>
-            <div className="my-1 border-t border-primary/10" />
-            <button
-              type="button"
-              role="menuitem"
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-charcoal hover:bg-primary/5"
-              onClick={() => {
-                void copyText(fullUrl, "Link copied");
-                setShareOpen(false);
-              }}
-            >
-              <LinkGlyph className="h-4 w-4 shrink-0 text-primary" />
-              Copy link
-            </button>
-            <div className="my-1 border-t border-primary/10" />
-            {shareLinks.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                role="menuitem"
-                className="flex w-full px-3 py-2 text-left text-sm text-charcoal hover:bg-primary/5"
-                onClick={() => {
-                  item.onSelect();
-                  setShareOpen(false);
-                }}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
+      <button
+        ref={shareBtnRef}
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={shareOpen}
+        aria-controls={shareOpen ? menuId : undefined}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setShareOpen((o) => !o);
+        }}
+        className={cn(
+          "inline-flex items-center gap-2 rounded-full border border-charcoal/12 bg-[#faf8f4]/90 font-medium tracking-[0.08em] text-charcoal/80 uppercase transition hover:border-charcoal/25 hover:bg-white hover:text-charcoal",
+          btnPad,
+          labelSize,
+        )}
+      >
+        <ShareGlyph className={compact ? "h-3.5 w-3.5" : "h-3.5 w-3.5"} />
+        Share
+      </button>
+
+      {menu}
 
       {hint ? (
-        <span className="text-[10px] uppercase tracking-[0.08em] text-muted" aria-live="polite">
+        <span className="text-[10px] uppercase tracking-[0.12em] text-muted" aria-live="polite">
           {hint}
         </span>
       ) : null}
@@ -335,28 +385,16 @@ export function LikeShareBar({ storageId, sharePath, title, className, compact }
 
 function ShareGlyph({ className }: { className?: string }) {
   return (
-    <svg className={cn("shrink-0 text-charcoal/70", className)} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="18" cy="5" r="2.25" stroke="currentColor" strokeWidth="1.75" />
-      <circle cx="6" cy="12" r="2.25" stroke="currentColor" strokeWidth="1.75" />
-      <circle cx="18" cy="19" r="2.25" stroke="currentColor" strokeWidth="1.75" />
-      <path d="M8.6 13.5l6.8 3.98M15.4 6.52L8.58 10.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function LinkGlyph({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1" />
-    </svg>
-  );
-}
-
-function PhoneShareGlyph({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <rect x="7" y="3" width="10" height="18" rx="2" />
-      <path d="M10 18h4" strokeLinecap="round" />
+    <svg className={cn("shrink-0 text-charcoal/55", className)} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="18" cy="5" r="2.1" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="6" cy="12" r="2.1" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="18" cy="19" r="2.1" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M8.6 13.5l6.8 3.98M15.4 6.52L8.58 10.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

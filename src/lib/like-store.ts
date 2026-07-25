@@ -1,27 +1,67 @@
+import { createInsForgeServerClientPublicOrNull } from "@/lib/insforge-server";
+
 /**
- * In-process like totals for `/api/public/likes`.
- * Survives across requests in `next dev` / `next start` (single Node process).
- * For production at scale, replace with a database row per `target`.
+ * Persistent like totals for `/api/public/likes`.
+ * Uses InsForge `content_likes` when available, with an in-process Map fallback.
  */
 
 type GlobalLikeMap = typeof globalThis & { __t9eLikeCounts?: Map<string, number> };
 
-function map(): Map<string, number> {
+function memoryMap(): Map<string, number> {
   const g = globalThis as GlobalLikeMap;
-  if (!g.__t9eLikeCounts) {
-    g.__t9eLikeCounts = new Map();
-  }
+  if (!g.__t9eLikeCounts) g.__t9eLikeCounts = new Map();
   return g.__t9eLikeCounts;
 }
 
-export function getLikeCount(target: string): number {
-  return map().get(target) ?? 0;
+export async function getLikeCount(target: string): Promise<number> {
+  const client = createInsForgeServerClientPublicOrNull();
+  if (client) {
+    try {
+      const { data, error } = await client.database
+        .from("content_likes")
+        .select("count")
+        .eq("target", target)
+        .limit(1);
+      if (!error) {
+        const row = Array.isArray(data) ? data[0] : data;
+        const count = (row as { count?: number } | undefined)?.count;
+        if (typeof count === "number") return Math.max(0, count);
+        return 0;
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+  return memoryMap().get(target) ?? 0;
 }
 
-/** Returns the new total. */
-export function adjustLikeCount(target: string, delta: number): number {
-  const m = map();
-  const next = Math.max(0, getLikeCount(target) + delta);
+/** Returns the new total after applying delta (+1 like / -1 unlike). */
+export async function adjustLikeCount(target: string, delta: number): Promise<number> {
+  const client = createInsForgeServerClientPublicOrNull();
+  if (client) {
+    try {
+      const { data: rpcData, error: rpcError } = await client.database.rpc("adjust_content_like", {
+        p_target: target,
+        p_delta: delta,
+      });
+      if (!rpcError && typeof rpcData === "number") {
+        return Math.max(0, rpcData);
+      }
+
+      const current = await getLikeCount(target);
+      const next = Math.max(0, current + delta);
+      const { error } = await client.database.from("content_likes").upsert(
+        { target, count: next, updated_at: new Date().toISOString() },
+        { onConflict: "target" },
+      );
+      if (!error) return next;
+    } catch {
+      /* fall through */
+    }
+  }
+
+  const m = memoryMap();
+  const next = Math.max(0, (m.get(target) ?? 0) + delta);
   m.set(target, next);
   return next;
 }

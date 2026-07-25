@@ -60,6 +60,92 @@ export default async function Home() {
 
       <EditorsRadar items={editorsRadar} />
 
+      <section className="container-premium pt-8">
+        <div className="grid gap-6 lg:grid-cols-12">
+          <article className="overflow-hidden rounded-xl border border-primary/15 bg-surface lg:col-span-7">
+            <div className="relative aspect-[16/10]">
+              <Image
+                src={leadStory.image}
+                alt={leadStory.title}
+                fill
+                sizes="(max-width: 1024px) 100vw, 60vw"
+                className="object-cover"
+                priority
+              />
+            </div>
+            <div className="p-6">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
+                {leadStory.category}
+              </p>
+              <h1 className="mt-3 font-serif text-3xl leading-tight sm:text-4xl md:text-5xl">{leadStory.title}</h1>
+              <p className="mt-4 text-sm leading-relaxed text-muted">{leadStory.excerpt}</p>
+              <p className="mt-4 text-[11px] uppercase tracking-[0.15em] text-charcoal/60">
+                {leadStory.byline}
+              </p>
+              <div className="mt-5">
+                <LikeShareBar
+                  storageId="story:cover"
+                  sharePath="/"
+                  title={leadStory.title}
+                />
+              </div>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/projects"
+                  className="rounded-full bg-primary px-5 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white"
+                >
+                  Explore Projects
+                </Link>
+                <Link
+                  href="/articles"
+                  className="rounded-full border border-primary/25 px-5 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-charcoal"
+                >
+                  Read Cover Story
+                </Link>
+              </div>
+            </div>
+          </article>
+
+          <aside className="rounded-xl border border-primary/15 bg-surface p-5 lg:col-span-5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
+              Top Stories
+            </p>
+            <div className="mt-4 space-y-5">
+              {secondaryLeadStories.map((story) => (
+                <article key={story.title} className="grid grid-cols-[96px_1fr] gap-3 border-b border-primary/10 pb-4 last:border-0 last:pb-0">
+                  <div className="relative h-20 overflow-hidden rounded-md">
+                    <Image
+                      src={story.image}
+                      alt={story.title}
+                      fill
+                      sizes="96px"
+                      className="object-cover"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.16em] text-primary/90">{story.category}</p>
+                    <h2 className="mt-1 font-serif text-lg leading-tight">{story.title}</h2>
+                    <p className="mt-1 text-xs text-muted">{story.byline}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="mt-6 rounded-lg border border-primary/15 bg-background-light p-4">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-primary">Market & News</p>
+              <ul className="mt-3 space-y-2">
+                {marketAndNews.slice(0, 4).map((item) => (
+                  <li key={item} className="text-sm leading-relaxed text-charcoal/85">
+                    • {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <LatestProjectsSection />
+
       {featuredByAdmin.length ? (
         <section className="container-premium pt-8">
           <div className="mb-4 flex items-end justify-between border-b border-primary/20 pb-2">
@@ -109,9 +195,9 @@ export default async function Home() {
             return (
               <article
                 key={slug}
-                className="flex flex-col overflow-hidden rounded-xl border border-primary/15 bg-surface shadow-sm transition hover:border-primary/40 hover:shadow-md"
+                className="relative z-0 flex flex-col overflow-visible rounded-xl border border-primary/15 bg-surface shadow-sm transition hover:border-primary/40 hover:shadow-md"
               >
-                <Link href={`/projects/${slug}`} className="group block flex-1">
+                <Link href={`/projects/${slug}`} className="group block flex-1 overflow-hidden rounded-t-xl">
                   <div className="relative aspect-[4/3] overflow-hidden bg-charcoal/5">
                     <Image
                       src={resolveProjectHeroImage(slug)}
@@ -131,7 +217,7 @@ export default async function Home() {
                     </p>
                   </div>
                 </Link>
-                <div className="border-t border-primary/10 px-3 py-2">
+                <div className="relative z-10 border-t border-primary/10 px-3 py-2">
                   <LikeShareBar
                     storageId={`project:${slug}`}
                     sharePath={`/projects/${slug}`}
@@ -142,84 +228,6 @@ export default async function Home() {
               </article>
             );
           })}
-        </div>
-      </section>
-
-      <LatestProjectsSection />
-
-      <section className="container-premium pt-10">
-        <div className="grid gap-6 lg:grid-cols-12">
-          <article className="overflow-hidden rounded-xl border border-primary/15 bg-surface lg:col-span-7">
-            <div className="relative aspect-[16/10]">
-              <Image
-                src={leadStory.image}
-                alt={leadStory.title}
-                fill
-                sizes="(max-width: 1024px) 100vw, 60vw"
-                className="object-cover"
-              />
-            </div>
-            <div className="p-6">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
-                {leadStory.category}
-              </p>
-              <h1 className="mt-3 font-serif text-3xl leading-tight sm:text-4xl md:text-5xl">{leadStory.title}</h1>
-              <p className="mt-4 text-sm leading-relaxed text-muted">{leadStory.excerpt}</p>
-              <p className="mt-4 text-[11px] uppercase tracking-[0.15em] text-charcoal/60">
-                {leadStory.byline}
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Link
-                  href="/articles"
-                  className="rounded-full bg-primary px-5 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white"
-                >
-                  Read Cover Story
-                </Link>
-                <Link
-                  href="/projects"
-                  className="rounded-full border border-primary/25 px-5 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-charcoal"
-                >
-                  Explore Projects
-                </Link>
-              </div>
-            </div>
-          </article>
-
-          <aside className="rounded-xl border border-primary/15 bg-surface p-5 lg:col-span-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
-              Top Stories
-            </p>
-            <div className="mt-4 space-y-5">
-              {secondaryLeadStories.map((story) => (
-                <article key={story.title} className="grid grid-cols-[96px_1fr] gap-3 border-b border-primary/10 pb-4 last:border-0 last:pb-0">
-                  <div className="relative h-20 overflow-hidden rounded-md">
-                    <Image
-                      src={story.image}
-                      alt={story.title}
-                      fill
-                      sizes="96px"
-                      className="object-cover"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.16em] text-primary/90">{story.category}</p>
-                    <h2 className="mt-1 font-serif text-lg leading-tight">{story.title}</h2>
-                    <p className="mt-1 text-xs text-muted">{story.byline}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-            <div className="mt-6 rounded-lg border border-primary/15 bg-background-light p-4">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-primary">Market & News</p>
-              <ul className="mt-3 space-y-2">
-                {marketAndNews.slice(0, 4).map((item) => (
-                  <li key={item} className="text-sm leading-relaxed text-charcoal/85">
-                    • {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
         </div>
       </section>
 

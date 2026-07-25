@@ -35,7 +35,8 @@ const P = (slug: string) => `/images/projects/${slug}/0.jpg`;
 export const featuredStories: EditorialStory[] = [
   {
     title: "A Menorcan Residence Where Architecture Negotiates with the Wind",
-    excerpt: "A Menorcan Residence Where Architecture Negotiates with the Wind",
+    excerpt:
+      "Limestone walls and sheltered courtyards shape a coastal house built for Menorca’s persistent winds.",
     image: P("vela-house"),
     category: "Architecture & Design",
     location: "Menorca",
@@ -43,7 +44,8 @@ export const featuredStories: EditorialStory[] = [
   },
   {
     title: "A Kanazawa Residence Shaped by Rain, Shadow and Three Gardens",
-    excerpt: "A Kanazawa Residence Shaped by Rain, Shadow and Three Gardens",
+    excerpt:
+      "A quiet domestic landscape organised around gardens, shadow, and Kanazawa’s rain-heavy climate.",
     image: P("kurokawa-courtyard-house"),
     category: "Architecture & Design",
     location: "Kanazawa",
@@ -51,7 +53,8 @@ export const featuredStories: EditorialStory[] = [
   },
   {
     title: "A Copenhagen Warehouse Reimagined as a Sequence of Rooms Within a Room",
-    excerpt: "A Copenhagen Warehouse Reimagined as a Sequence of Rooms Within a Room",
+    excerpt:
+      "Freestanding copper volumes create a new architectural landscape inside a former warehouse.",
     image: P("the-copper-passage"),
     category: "Architecture & Design",
     location: "Copenhagen",
@@ -59,7 +62,8 @@ export const featuredStories: EditorialStory[] = [
   },
   {
     title: "A Forest Residence in Mexico Designed Around the Changing Night Sky",
-    excerpt: "A Forest Residence in Mexico Designed Around the Changing Night Sky",
+    excerpt:
+      "Hidden in Valle de Bravo, the house frames the forest below while turning toward the night sky.",
     image: P("sierra-observatory-house"),
     category: "Architecture & Design",
     location: "Valle de Bravo",
@@ -67,7 +71,8 @@ export const featuredStories: EditorialStory[] = [
   },
   {
     title: "A Geothermal Retreat in Iceland Shaped by Darkness, Steam and the Northern Sky",
-    excerpt: "A Geothermal Retreat in Iceland Shaped by Darkness, Steam and the Northern Sky",
+    excerpt:
+      "An intimate retreat embedded in volcanic terrain, shaped by geothermal warmth and darkness.",
     image: P("hotel-nott"),
     category: "Architecture & Design",
     location: "Hella",
@@ -75,7 +80,8 @@ export const featuredStories: EditorialStory[] = [
   },
   {
     title: "A Historic Porto Townhouse Reimagined Through a Vertical Sequence of Light",
-    excerpt: "A Historic Porto Townhouse Reimagined Through a Vertical Sequence of Light",
+    excerpt:
+      "Behind a restored façade, a narrow townhouse becomes a vertical journey of changing daylight.",
     image: P("rua-das-janelas"),
     category: "Architecture & Design",
     location: "Porto",
@@ -83,7 +89,8 @@ export const featuredStories: EditorialStory[] = [
   },
   {
     title: "A Desert Residence in Central Australia Built Around Shade, Distance and the Horizon",
-    excerpt: "A Desert Residence in Central Australia Built Around Shade, Distance and the Horizon",
+    excerpt:
+      "Massive walls and deep shade create a refuge from extreme heat across the desert horizon.",
     image: P("red-earth-house"),
     category: "Architecture & Design",
     location: "Alice Springs",
@@ -94,7 +101,7 @@ export const featuredStories: EditorialStory[] = [
 export const leadStory: EditorialStory = {
   title: "The Ninth Edition: Twenty residences shaped by climate, craft, and place",
   excerpt:
-    "From Menorca and Kanazawa to Iceland and the Namib, a new global project library documents how contemporary architecture negotiates wind, water, stone, and light.",
+    "Our first global project library gathers houses and retreats from Menorca to Marrakech — each documented with photography, build details, and the studios behind them.",
   image: P("vela-house"),
   category: "Cover Story",
   byline: "By the9thedition Editors",
@@ -102,25 +109,24 @@ export const leadStory: EditorialStory = {
 
 export const secondaryLeadStories: EditorialStory[] = [
   {
-    title: "A Coastal Residence in Iceland Shaped by Basalt, Ocean Winds and the Northern Horizon",
-    excerpt: "A Coastal Residence in Iceland Shaped by Basalt, Ocean Winds and the Northern Horizon",
+    title: "Edge of the North",
+    excerpt: "Basalt, ocean winds, and the northern horizon on Iceland’s Snæfellsnes Peninsula.",
     image: P("edge-of-the-north"),
     category: "Architecture & Design",
-    location: "Snæfellsnes Peninsula",
+    location: "Snæfellsnes",
     byline: "By Norður Atelier",
   },
   {
-    title: "A Contemporary Kyoto Residence Shaped by Timber, Courtyards and the Passage of Light",
-    excerpt: "A Contemporary Kyoto Residence Shaped by Timber, Courtyards and the Passage of Light",
+    title: "House Between Gardens",
+    excerpt: "Timber, courtyards, and the passage of light in a contemporary Kyoto residence.",
     image: P("house-between-gardens"),
     category: "Architecture & Design",
     location: "Kyoto",
     byline: "By Atelier Kinu",
   },
   {
-    title: "A Sculptural Coastal Residence in Western Australia Carved Between Limestone, Light and the Indian Ocean",
-    excerpt:
-      "A Sculptural Coastal Residence in Western Australia Carved Between Limestone, Light and the Indian Ocean",
+    title: "The Hollow Coast",
+    excerpt: "Limestone and light carved into a sculptural residence on Western Australia’s coast.",
     image: P("the-hollow-coast"),
     category: "Architecture & Design",
     location: "Margaret River",
@@ -130,43 +136,43 @@ export const secondaryLeadStories: EditorialStory[] = [
 
 export const projectSpotlights: EditorialStory[] = [
   {
-    title: "A Cliffside Wellness Retreat in Milos Carved Between Stone and the Aegean Sea",
-    excerpt: "A Cliffside Wellness Retreat in Milos Carved Between Stone and the Aegean Sea",
+    title: "The White Descent",
+    excerpt: "A cliffside wellness retreat carved between stone and the Aegean Sea.",
     image: P("the-white-descent"),
     category: "Architecture & Design",
     location: "Milos",
   },
   {
-    title: "A Mountain Residence in Hokkaido Designed Around Silence, Warmth and the Winter Landscape",
-    excerpt: "A Mountain Residence in Hokkaido Designed Around Silence, Warmth and the Winter Landscape",
+    title: "House of Falling Snow",
+    excerpt: "A Hokkaido mountain house designed for silence, warmth, and winter.",
     image: P("house-of-falling-snow"),
     category: "Architecture & Design",
     location: "Niseko",
   },
   {
-    title: "A Tropical Residence in Costa Rica Built Around Rain, Concrete and the Forest Canopy",
-    excerpt: "A Tropical Residence in Costa Rica Built Around Rain, Concrete and the Forest Canopy",
+    title: "Canopy Void House",
+    excerpt: "Rain, concrete, and forest canopy shape this tropical Costa Rican residence.",
     image: P("canopy-void-house"),
     category: "Architecture & Design",
     location: "Uvita",
   },
   {
-    title: "A Parisian Residence Reimagined Through Stone, Shadow and Contemporary Craft",
-    excerpt: "A Parisian Residence Reimagined Through Stone, Shadow and Contemporary Craft",
+    title: "Maison de l’Ombre",
+    excerpt: "A Parisian residence reimagined through stone, shadow, and contemporary craft.",
     image: P("maison-de-l-ombre"),
     category: "Interior Design & Architecture",
     location: "Paris",
   },
   {
-    title: "A Desert Residence in Namibia Framing the Silence and Scale of the Namib Landscape",
-    excerpt: "A Desert Residence in Namibia Framing the Silence and Scale of the Namib Landscape",
+    title: "House of Distant Dunes",
+    excerpt: "A Namibian desert residence framing silence and the scale of the dunes.",
     image: P("house-of-distant-dunes"),
     category: "Architecture & Design",
     location: "Sossusvlei",
   },
   {
-    title: "A Vineyard Residence in Chile Shaped by Stone, Copper and Views Towards the Andes",
-    excerpt: "A Vineyard Residence in Chile Shaped by Stone, Copper and Views Towards the Andes",
+    title: "Valle de Cobre",
+    excerpt: "Stone, copper, and Andean views organise this Chilean vineyard estate.",
     image: P("valle-de-cobre"),
     category: "Architecture & Design",
     location: "Colchagua Valley",
@@ -174,25 +180,25 @@ export const projectSpotlights: EditorialStory[] = [
 ];
 
 export const marketAndNews = [
-  "AI-assisted housing concept tools are entering early-stage design studios",
-  "Regional stone and lime plaster suppliers report strongest demand in five years",
-  "Luxury kitchen brands are launching India-specific modular collections",
-  "Boutique hospitality projects now prefer smaller specialist interior teams",
-  "Sustainable material libraries are becoming default in premium architecture offices",
-  "Collectors are commissioning site-specific art for private residences",
+  "Limestone and rammed-earth detailing lead new residential commissions across the Mediterranean",
+  "Geothermal hospitality projects in Iceland set a higher bar for climate-led guest experiences",
+  "Adaptive reuse of warehouses continues to define northern European city living",
+  "Courtyard plans return as the default for privacy and passive cooling in warm climates",
+  "Material libraries now prioritise repairable stone, timber, and lime over trend finishes",
+  "Private clients commission site-specific art as part of the architectural brief",
 ];
 
 export const directoryPicks = [
-  "AD Pro Directory: architecture firms with standout climate-responsive work",
-  "Interior design studios known for handcrafted material palettes",
+  "Studios with standout climate-responsive residential work",
+  "Interior practices known for stone, timber, and handcrafted joinery",
   "Lighting consultants shaping mood-led residential narratives",
-  "Landscape practices specializing in courtyard ecosystems",
+  "Landscape practices specializing in courtyard and coastal ecosystems",
 ];
 
 export const newsletterHighlights = [
-  "The 9 homes everyone in design circles is sharing this week",
-  "Material intelligence: lime, laterite, and timber in modern projects",
-  "Directory watchlist: practices redefining Indian luxury architecture",
+  "The residences everyone in design circles is sharing this week",
+  "Material intelligence: limestone, copper, and timber in new projects",
+  "Directory watchlist: practices defining contemporary luxury architecture",
 ];
 
 /** Homepage “Editor’s radar” strip — each line links somewhere real (projects, sections, or lists). */
@@ -228,7 +234,7 @@ export const editorsRadar: EditorsRadarItem[] = [
     href: "/projects/house-of-distant-dunes",
   },
   {
-    text: "AI-assisted concepting enters early architecture ideation workflows",
+    text: "Architecture news: materials, climate, and studio practice",
     href: "/architecture-news",
   },
   {

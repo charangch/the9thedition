@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid target" }, { status: 400 });
   }
-  const count = getLikeCount(parsed.data);
+  const count = await getLikeCount(parsed.data);
   return NextResponse.json({ count });
 }
 
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const json = await request.json();
     const { target, action } = postSchema.parse(json);
     const delta = action === "like" ? 1 : -1;
-    const count = adjustLikeCount(target, delta);
+    const count = await adjustLikeCount(target, delta);
     return NextResponse.json({ count });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Invalid request";

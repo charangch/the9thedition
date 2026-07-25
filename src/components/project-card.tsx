@@ -41,8 +41,8 @@ export function publishedToProjectCard(project: PublishedProject): ProjectCardMo
 /** Shared project card — matches `/projects` listing markup (production design system). */
 export function ProjectCard({ project }: { project: ProjectCardModel }) {
   return (
-    <article className="flex flex-col overflow-hidden rounded-xl border border-primary/15 bg-surface shadow-sm transition hover:border-primary/35 hover:shadow-md">
-      <Link href={`/projects/${project.slug}`} className="group block flex-1">
+    <article className="relative z-0 flex flex-col overflow-visible rounded-xl border border-primary/15 bg-surface shadow-sm transition hover:border-primary/35 hover:shadow-md">
+      <Link href={`/projects/${project.slug}`} className="group block flex-1 overflow-hidden rounded-t-xl">
         <div className="relative aspect-[16/10] bg-charcoal/5">
           <Image
             src={project.image}
@@ -56,7 +56,7 @@ export function ProjectCard({ project }: { project: ProjectCardModel }) {
         <div className="p-4">
           <p className="text-[10px] uppercase tracking-[0.16em] text-primary">
             {project.category}
-            {project.location ? ` • ${project.location}` : ""}
+            {project.location ? ` · ${project.location.split(",")[0]?.trim()}` : ""}
           </p>
           <h2 className="mt-1 break-words font-serif text-xl leading-snug group-hover:text-primary">{project.title}</h2>
           {project.meta ? (
@@ -66,7 +66,7 @@ export function ProjectCard({ project }: { project: ProjectCardModel }) {
           ) : null}
         </div>
       </Link>
-      <div className="border-t border-primary/10 px-4 py-3">
+      <div className="relative z-10 border-t border-primary/10 px-4 py-3">
         <LikeShareBar
           storageId={`project:${project.slug}`}
           sharePath={`/projects/${project.slug}`}

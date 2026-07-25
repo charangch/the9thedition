@@ -28,8 +28,7 @@ export function EditorsRadar({ items }: Props) {
               Editor&apos;s radar
             </p>
             <p className="mt-1.5 text-sm leading-snug text-charcoal/75">
-              Short themes we&apos;re following.{" "}
-              <span className="text-muted">Scroll sideways on mobile — each card opens a project or section.</span>
+              Themes and projects our editors are watching this season.
             </p>
             <Link
               href="/articles"
@@ -60,7 +59,7 @@ export function EditorsRadar({ items }: Props) {
               ))}
             </div>
             <p className="mt-2 text-center text-[10px] text-muted md:hidden" aria-hidden>
-              ← Swipe for more →
+              Swipe to browse
             </p>
           </div>
         </div>
