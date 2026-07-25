@@ -81,3 +81,23 @@ a {
 .container-premium {
   @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
 }
+
+/* Full-bleed horizontal rails that still line up with .container-premium */
+.container-premium-gutter-x {
+  padding-left: max(1rem, calc((100vw - 80rem) / 2 + 1rem));
+  padding-right: max(1rem, calc((100vw - 80rem) / 2 + 1rem));
+}
+
+@media (min-width: 640px) {
+  .container-premium-gutter-x {
+    padding-left: max(1.5rem, calc((100vw - 80rem) / 2 + 1.5rem));
+    padding-right: max(1.5rem, calc((100vw - 80rem) / 2 + 1.5rem));
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-premium-gutter-x {
+    padding-left: max(2rem, calc((100vw - 80rem) / 2 + 2rem));
+    padding-right: max(2rem, calc((100vw - 80rem) / 2 + 2rem));
+  }
+}

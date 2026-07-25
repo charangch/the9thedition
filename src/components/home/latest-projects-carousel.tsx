@@ -89,7 +89,7 @@ export function LatestProjectsCarousel({ projects }: Props) {
 
       <div
         ref={scrollerRef}
-        className="flex gap-5 overflow-x-auto scroll-smooth px-4 pb-2 [scrollbar-width:thin] md:gap-6 md:px-[max(1.5rem,calc((100vw-72rem)/2+1.5rem))]"
+        className="container-premium-gutter-x flex gap-5 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:thin] md:gap-6"
       >
         {projects.map((project) => (
           <div

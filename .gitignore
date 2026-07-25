@@ -49,3 +49,4 @@ tmp-unbuilt-zip/
 .trae
 .windsurf
 .env*
+.bin/
