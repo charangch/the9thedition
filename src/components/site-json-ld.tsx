@@ -45,14 +45,6 @@ export function SiteJsonLd() {
       url: `${base}${section.href}`,
       description: section.description,
     })),
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${base}/projects?q={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
-    },
   };
 
   const navigation = {

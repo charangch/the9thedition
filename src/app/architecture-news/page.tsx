@@ -10,7 +10,7 @@ import {
   listArchitectureNewsPage,
 } from "@/lib/architecture-news";
 import { generatedImagePath } from "@/lib/generated-media";
-import { listingPageCanonical, listingPageRobots, listingPrimaryCanonical } from "@/lib/listing-page-seo";
+import { listingPageRobots, listingPrimaryCanonical } from "@/lib/listing-page-seo";
 
 const PAGE_TITLE = "Architecture News";
 const PAGE_DESC =
@@ -46,7 +46,7 @@ export async function generateMetadata({
     openGraph: {
       type: "website",
       locale: "en_US",
-      url: listingPageCanonical("/architecture-news", listingParams),
+      url: primaryCanonical,
       siteName: "The 9th Edition",
       title: `${PAGE_TITLE} | the9thedition`,
       description: PAGE_DESC,

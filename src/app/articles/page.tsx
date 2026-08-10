@@ -10,7 +10,7 @@ import {
   listEditorialArticlesPage,
 } from "@/lib/editorial-articles";
 import { editorialHeroPath } from "@/lib/editorial-collection-images";
-import { listingPageCanonical, listingPageRobots, listingPrimaryCanonical } from "@/lib/listing-page-seo";
+import { listingPageRobots, listingPrimaryCanonical } from "@/lib/listing-page-seo";
 
 const PAGE_TITLE = "Articles";
 const PAGE_DESC =
@@ -47,7 +47,7 @@ export async function generateMetadata({
     openGraph: {
       type: "website",
       locale: "en_US",
-      url: listingPageCanonical("/articles", listingParams),
+      url: primaryCanonical,
       siteName: "The 9th Edition",
       title: `${PAGE_TITLE} | the9thedition`,
       description: PAGE_DESC,

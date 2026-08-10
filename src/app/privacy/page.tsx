@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SUPPORT_EMAIL } from "@/lib/site-contact";
+import { buildPageMetadata } from "@/lib/seo-metadata";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Privacy Policy",
+  description: "How The 9th Edition collects, uses, and protects personal data on theninthedition.com.",
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

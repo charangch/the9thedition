@@ -287,27 +287,47 @@ export function SubmissionsTable() {
     setBusy(true);
     setUploadErr(null);
     setError(null);
+    const list = Array.from(files);
+    const urls: string[] = [];
     try {
-      const body = new FormData();
-      Array.from(files).forEach((f) => body.append("files", f));
-      const res = await fetch("/api/admin/publishing/media", {
-        method: "POST",
-        body,
-        credentials: "same-origin",
-      });
-      const data = (await res.json().catch(() => ({}))) as { urls?: string[]; error?: string };
-      if (!res.ok) {
-        const msg = formatApiError(data) || "Upload failed";
-        setUploadErr(msg);
-        setError(msg);
-        return;
-      }
-      const urls = data.urls ?? [];
-      if (!urls.length) {
-        const msg = "Upload returned no image URL. Check that the submission-media bucket exists and is public.";
-        setUploadErr(msg);
-        setError(msg);
-        return;
+      // One file per request — multi-file multipart often exceeds the serverless body limit (~4.5MB).
+      for (const file of list) {
+        const body = new FormData();
+        body.append("files", file);
+        const res = await fetch("/api/admin/publishing/media", {
+          method: "POST",
+          body,
+          credentials: "same-origin",
+        });
+        const rawText = await res.text();
+        let data: { urls?: string[]; error?: string } = {};
+        try {
+          data = rawText ? (JSON.parse(rawText) as { urls?: string[]; error?: string }) : {};
+        } catch {
+          data = {};
+        }
+        if (!res.ok) {
+          const msg =
+            formatApiError(data, res.status) ||
+            (res.status === 413
+              ? "Upload too large. Try a smaller image or fewer at once."
+              : `Upload failed (${res.status}).`);
+          setUploadErr(msg);
+          setError(msg);
+          if (urls.length && target === "gallery") {
+            setGalleryUrls((prev) => [...prev, ...urls].slice(0, 25));
+            setSaveMessage(`${urls.length} of ${list.length} image(s) uploaded before an error.`);
+          }
+          return;
+        }
+        const batch = data.urls ?? [];
+        if (!batch.length) {
+          const msg = "Upload returned no image URL. Check that the submission-media bucket exists and is public.";
+          setUploadErr(msg);
+          setError(msg);
+          return;
+        }
+        urls.push(...batch);
       }
       if (target === "hero" && urls[0]) {
         patch("coverImageUrl", urls[0]);
@@ -318,6 +338,11 @@ export function SubmissionsTable() {
       if (target === "gallery") {
         setGalleryUrls((prev) => [...prev, ...urls].slice(0, 25));
         setSaveMessage(`${urls.length} image(s) added to gallery.`);
+      }
+      if (target === "professional" && urls[0]) {
+        patch("professionalImageUrl", urls[0]);
+        setProfessionalImageUrlInput("");
+        setSaveMessage("Architect image uploaded.");
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Upload failed";
@@ -536,7 +561,7 @@ export function SubmissionsTable() {
       setFaqDraft(mapped.faq?.length ? mapped.faq : [{ question: "", answer: "" }]);
     }
     setWorkspaceTab("drafts");
-    setSaveMessage(`Editing published project “${slug}”. Save draft, then publish to update the live page.`);
+    setSaveMessage(`Editing published project “${slug}”. Click Publish to update the live page (draft save is optional).`);
   }
 
   async function deleteArchitect(id: string) {
@@ -884,10 +909,10 @@ export function SubmissionsTable() {
         <section className="rounded-xl border border-primary/12 bg-primary/[0.04] p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Workflow</p>
           <ol className="mt-2 list-decimal space-y-1 pl-4 text-sm text-charcoal/85">
-            <li>Save draft (project title is enough to start)</li>
+            <li>Fill required fields (or save a draft anytime with just a title)</li>
             <li>Upload hero — wait for green &quot;Ready&quot; preview (AVIF, PNG, JPEG)</li>
-            <li>Complete copy, architect, and build details</li>
-            <li>Publish — live on /projects, homepage Latest Projects, and architect profile</li>
+            <li>Add gallery images, architect, and build details</li>
+            <li>Publish — goes live immediately on /projects, Latest Projects, and architect profile</li>
           </ol>
           {(() => {
             const check = validatePublishForm(buildPayload());

@@ -39,21 +39,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     publishedRows = [];
   }
 
-  const newsEntries: MetadataRoute.Sitemap = newsSlugs.map((slug) => ({
+  const newsEntries: MetadataRoute.Sitemap = newsSlugs.slice(0, 60).map((slug) => ({
     url: `${base}/architecture-news/${slug}`,
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.72,
   }));
 
-  const archiveEntries: MetadataRoute.Sitemap = archiveSlugs.map((slug) => ({
+  const archiveEntries: MetadataRoute.Sitemap = archiveSlugs.slice(0, 60).map((slug) => ({
     url: `${base}/archive/${slug}`,
     lastModified: now,
     changeFrequency: "monthly",
     priority: 0.68,
   }));
 
-  const articleEntries: MetadataRoute.Sitemap = editorialSlugs.map((slug) => ({
+  const articleEntries: MetadataRoute.Sitemap = editorialSlugs.slice(0, 60).map((slug) => ({
     url: `${base}/articles/${slug}`,
     lastModified: now,
     changeFrequency: "monthly",

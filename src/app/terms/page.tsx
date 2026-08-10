@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SUPPORT_EMAIL } from "@/lib/site-contact";
+import { buildPageMetadata } from "@/lib/seo-metadata";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Terms of Use",
+  description: "Terms governing use of The 9th Edition website and editorial services.",
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (

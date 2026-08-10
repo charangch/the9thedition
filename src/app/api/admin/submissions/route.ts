@@ -26,7 +26,8 @@ const saveSchema = z.object({
 const patchSchema = z.object({
   id: z.string().uuid(),
   action: z.enum(["save", "publish", "delete"]).optional(),
-  form: projectPublishFormSchema.optional(),
+  /** Parsed with draft vs publish schema after `action` is known — do not use publish schema here. */
+  form: z.unknown().optional(),
 });
 
 type DraftForm = z.infer<typeof projectPublishDraftSchema>;
@@ -61,10 +62,14 @@ async function uniqueSlug(
   client: ReturnType<typeof createInsForgeServerClient>,
   base: string,
   preferred?: string,
+  /** Existing slug to reuse when updating a live project (upsert). */
+  allowExisting?: string | null,
 ) {
   const normalized = slugifyProject(preferred?.trim() || base) || "untitled-project";
+  const allowed = allowExisting ? slugifyProject(allowExisting) : "";
   for (let i = 0; i < 50; i++) {
     const candidate = i === 0 ? normalized : `${normalized}-${i + 1}`;
+    if (allowed && candidate === allowed) return candidate;
     const { data, error } = await client.database.from("published_projects").select("slug").eq("slug", candidate).limit(1);
     if (error) return candidate;
     const row = Array.isArray(data) ? data[0] : data;
@@ -211,6 +216,10 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  if (parsed.data.form === undefined) {
+    return NextResponse.json({ error: "Form data is required." }, { status: 400 });
+  }
+
   const schema = action === "publish" ? projectPublishFormSchema : projectPublishDraftSchema;
   const formParsed = schema.safeParse(parsed.data.form);
   if (!formParsed.success) {
@@ -256,9 +265,24 @@ export async function PATCH(request: Request) {
     const professional = resolved.professional;
 
     const preferredSlug = form.slug?.trim() || form.projectName;
-    publishedSlug =
-      publishedSlug ??
-      (await uniqueSlug(client, form.projectName, preferredSlug));
+    if (!publishedSlug) {
+      const preferred = slugifyProject(preferredSlug) || "untitled-project";
+      const { data: existingRows } = await client.database
+        .from("published_projects")
+        .select("slug, title")
+        .eq("slug", preferred)
+        .limit(1);
+      const existing = Array.isArray(existingRows) ? existingRows[0] : existingRows;
+      const existingTitle =
+        existing && typeof (existing as { title?: string }).title === "string"
+          ? (existing as { title: string }).title.trim().toLowerCase()
+          : "";
+      if (existing && existingTitle === form.projectName.trim().toLowerCase()) {
+        publishedSlug = preferred;
+      } else {
+        publishedSlug = await uniqueSlug(client, form.projectName, preferredSlug);
+      }
+    }
     publishedUrl = `/projects/${publishedSlug}`;
 
     const firmLabel = professional.firm || (form.architectureFirm ?? "").trim();

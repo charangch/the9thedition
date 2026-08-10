@@ -7,13 +7,15 @@ import { AWARDS_EDITION_YEAR, awardWinners, studentAwardSpotlights } from "@/lib
 import { getArchitectBySlug } from "@/lib/architects";
 import { generatedImagePath } from "@/lib/generated-media";
 import { getProjectBySlug } from "@/lib/project-catalog";
+import { buildPageMetadata } from "@/lib/seo-metadata";
 import { getSiteUrl } from "@/lib/site-url";
 
-export const metadata: Metadata = {
-  title: `Awards ${AWARDS_EDITION_YEAR} | the9thedition`,
+export const metadata: Metadata = buildPageMetadata({
+  title: `Awards ${AWARDS_EDITION_YEAR}`,
   description:
     "Building of the Year — curated winners across housing, culture, interiors, and landscape, with a dedicated student stream.",
-};
+  path: "/awards",
+});
 
 const editionYears = [2024, 2025, 2026];
 

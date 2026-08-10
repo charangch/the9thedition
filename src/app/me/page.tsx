@@ -1,11 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { getMySubmissions } from "@/lib/my-submissions";
 import { getProfileForUser } from "@/lib/profile";
 import { getReaderHub } from "@/lib/reader-hub";
+import { buildPageMetadata } from "@/lib/seo-metadata";
 import { getServerSession } from "@/lib/session";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Reader Profile",
+  path: "/me",
+  noIndex: true,
+});
 
 export default async function MePage() {
   const session = await getServerSession();

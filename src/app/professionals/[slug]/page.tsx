@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,6 +11,7 @@ import {
   getPublishedProjectsByProfessionalId,
 } from "@/lib/published-projects";
 import { getProjectsByArchitectSlug, resolveProjectHeroImage } from "@/lib/project-catalog";
+import { buildPageMetadata } from "@/lib/seo-metadata";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -17,6 +19,29 @@ export async function generateStaticParams() {
   const db = await getProfessionals(200);
   const slugs = new Set([...getAllArchitectSlugs(), ...db.map((p) => p.slug)]);
   return [...slugs].map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const dbProfessional = await getProfessionalBySlug(slug);
+  const architect = dbProfessional
+    ? {
+        firm: dbProfessional.firm,
+        name: dbProfessional.name,
+        bio: dbProfessional.bio ?? "",
+      }
+    : getArchitectBySlug(slug);
+  if (!architect) {
+    return buildPageMetadata({ title: "Professional", path: `/professionals/${slug}`, noIndex: true });
+  }
+  const desc =
+    architect.bio?.trim().slice(0, 160) ||
+    `${architect.firm} — architecture studio profile on The 9th Edition.`;
+  return buildPageMetadata({
+    title: architect.firm,
+    description: desc,
+    path: `/professionals/${slug}`,
+  });
 }
 
 export default async function ProfessionalDetailPage({ params }: Props) {

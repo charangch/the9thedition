@@ -214,10 +214,19 @@ export function SubmitForm() {
             .filter(Boolean),
         }),
       });
-      const data = (await res.json()) as { ok?: boolean; error?: string };
+      const data = (await res.json()) as { ok?: boolean; error?: unknown };
       if (!res.ok) {
         setStatus("error");
-        setMessage(typeof data.error === "string" ? data.error : "Submit failed");
+        const err = data.error;
+        if (typeof err === "string") setMessage(err);
+        else if (err && typeof err === "object") {
+          const flat = err as { formErrors?: string[]; fieldErrors?: Record<string, string[]> };
+          const lines: string[] = [...(flat.formErrors ?? [])];
+          for (const [key, msgs] of Object.entries(flat.fieldErrors ?? {})) {
+            for (const m of msgs) lines.push(`${key}: ${m}`);
+          }
+          setMessage(lines.length ? lines.join("\n") : "Submit failed");
+        } else setMessage("Submit failed");
         return;
       }
       setStatus("done");

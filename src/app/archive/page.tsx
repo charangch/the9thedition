@@ -13,7 +13,7 @@ import {
 import { publishedToArchiveProject } from "@/lib/admin/published-to-archive";
 import { getArchivedPublishedForArchive } from "@/lib/published-projects";
 import { editorialHeroPath } from "@/lib/editorial-collection-images";
-import { listingPageCanonical, listingPageRobots, listingPrimaryCanonical } from "@/lib/listing-page-seo";
+import { listingPageRobots, listingPrimaryCanonical } from "@/lib/listing-page-seo";
 
 const PAGE_TITLE = "Project Archive";
 const PAGE_DESC =
@@ -50,7 +50,7 @@ export async function generateMetadata({
     openGraph: {
       type: "website",
       locale: "en_US",
-      url: listingPageCanonical("/archive", listingParams),
+      url: primaryCanonical,
       siteName: "The 9th Edition",
       title: `${PAGE_TITLE} | the9thedition`,
       description: PAGE_DESC,

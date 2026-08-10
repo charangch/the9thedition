@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
+import { buildPageMetadata } from "@/lib/seo-metadata";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Cookies Policy",
+  description: "How The 9th Edition uses cookies and similar technologies on theninthedition.com.",
+  path: "/cookies",
+});
 
 export default function CookiesPage() {
   return (
